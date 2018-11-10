@@ -127,16 +127,38 @@ func (r *RenderState) Step() bool {
 	case UpdateEvent:
 		r.loadOriginal(e.World.GetImage())
 		r.resetImage()
-		r.Redraw()
 
+		for x := 0; x < e.World.GetWidth(); x++ {
+			for y := 0; y < e.World.GetHeight(); y++ {
+				tile := e.World.GetTile(x, y)
+				for _, p := range tile.People {
+					drawPersonInBuffer(r, p.X, p.Y, p.C)
+				}
+			}
+		}
+
+		r.Redraw()
 		// run through and draw people to buffer
 	}
 	return true
 }
 
+func drawPersonInBuffer(r *RenderState, x, y float64, c color.Color) {
+	ix := int(x * float64(r.backgroundScale))
+	iy := int(y * float64(r.backgroundScale))
+
+	for px := 0; px < r.backgroundScale/10; px++ {
+		for py := 0; py < r.backgroundScale/10; py++ {
+			r.b.RGBA().Set(ix+px, iy+py, c)
+		}
+	}
+
+	//r.b.RGBA().Set(ix, iy, c)
+}
+
 func (r *RenderState) Redraw() {
 	// Set background
-	r.w.Fill(r.sz.Bounds(), color.Transparent, screen.Src)
+	//r.w.Fill(r.sz.Bounds(), color.Transparent, screen.Src)
 
 	// Upload buffer to texture
 	r.t.Upload(image.Point{}, r.b, r.b.Bounds())

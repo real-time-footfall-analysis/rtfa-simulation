@@ -43,11 +43,23 @@ func main() {
 }
 
 func simulate(world *world.State, r *render.RenderState) {
-	ticker := time.NewTicker(2000 * time.Millisecond)
+	ticker := time.NewTicker(100 * time.Millisecond)
 	go func() {
+		steps := 0
 		for t := range ticker.C {
-			fmt.Println("Tick at", t)
+			fmt.Println(steps, "Tick at", t)
+
+			if steps%2 == 0 && steps < 10 {
+				for i := 0; i < 100; i++ {
+					world.AddRandom()
+				}
+			} else {
+				for i := 0; i < 100*steps; i++ {
+					world.MoveRandom()
+				}
+			}
 			r.SendEvent(render.UpdateEvent{world})
+			steps++
 		}
 	}()
 	time.Sleep(60 * time.Second)
