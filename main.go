@@ -10,7 +10,7 @@ import (
 )
 
 func main() {
-	w := world.LoadFromImage("test.png")
+	w := world.LoadFromImage("test2.png")
 	fmt.Println("state size:", w.GetWidth(), w.GetHeight())
 	for y := 0; y < w.GetHeight(); y++ {
 		for x := 0; x < w.GetWidth(); x++ {
@@ -49,7 +49,8 @@ func main() {
 }
 
 func simulate(world *world.State, r *render.RenderState) {
-	ticker := time.NewTicker(100 * time.Millisecond)
+	time.Sleep(5 * time.Second)
+	ticker := time.NewTicker(500 * time.Millisecond)
 	go func() {
 		steps := 0
 		for t := range ticker.C {

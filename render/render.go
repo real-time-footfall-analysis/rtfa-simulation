@@ -22,6 +22,8 @@ type RenderState struct {
 	w               screen.Window
 	b               screen.Buffer
 	t               screen.Texture
+	bb              screen.Buffer
+	bt              screen.Texture
 	sz              size.Event
 	windowScale     float64
 	backgroundScale int
@@ -46,21 +48,32 @@ func SetupRender(s screen.Screen, original image.Image) RenderState {
 	nx, ny := r.loadOriginal(original)
 
 	size0 := image.Point{nx, ny}
-	//size0 := image.Point{400, 300}
+
 	b, err := s.NewBuffer(size0)
 	if err != nil {
 		log.Fatal(err)
 	}
 	r.b = b
 
+	bb, err := s.NewBuffer(size0)
+	if err != nil {
+		log.Fatal(err)
+	}
+	r.bb = bb
+
 	t, err := s.NewTexture(size0)
 	if err != nil {
 		log.Fatal(err)
 	}
 	r.t = t
+	bt, err := s.NewTexture(size0)
+	if err != nil {
+		log.Fatal(err)
+	}
+	r.bt = bt
 
-	bufferImage(r.b, r.i)
-	r.t.Upload(image.Point{}, r.b, r.b.Bounds())
+	bufferImage(r.bb, r.i)
+	r.bt.Upload(image.Point{}, r.bb, r.bb.Bounds())
 
 	r.windowScale = float64(1)
 
@@ -76,8 +89,14 @@ func (r *RenderState) loadOriginal(original image.Image) (int, int) {
 	return nx, ny
 }
 
-func (r *RenderState) resetImage() {
-	bufferImage(r.b, r.i)
+func (r *RenderState) resetPeopleBuffer() {
+	size := r.b.Size()
+	r.b.Release()
+	b, err := r.s.NewBuffer(size)
+	if err != nil {
+		log.Fatal(err)
+	}
+	r.b = b
 }
 
 func (r *RenderState) SendEvent(e interface{}) {
@@ -125,8 +144,8 @@ func (r *RenderState) Step() bool {
 	case paint.Event:
 		r.Redraw()
 	case UpdateEvent:
-		r.loadOriginal(e.World.GetImage())
-		r.resetImage()
+		//r.loadOriginal(e.World.GetImage())
+		r.resetPeopleBuffer()
 
 		for x := 0; x < e.World.GetWidth(); x++ {
 			for y := 0; y < e.World.GetHeight(); y++ {
@@ -147,9 +166,16 @@ func drawPersonInBuffer(r *RenderState, x, y float64, c color.Color) {
 	ix := int(x * float64(r.backgroundScale))
 	iy := int(y * float64(r.backgroundScale))
 
-	for px := 0; px < r.backgroundScale/10; px++ {
-		for py := 0; py < r.backgroundScale/10; py++ {
-			r.b.RGBA().Set(ix+px, iy+py, c)
+	p := 2
+	pr := r.backgroundScale / p
+	if pr == 0 {
+		pr = 1
+	}
+	for px := -pr; px < pr; px++ {
+		for py := -pr; py < pr; py++ {
+			if px*px+py*py < pr*pr {
+				r.b.RGBA().Set(ix+px, iy+py, c)
+			}
 		}
 	}
 
@@ -170,15 +196,18 @@ func (r *RenderState) Redraw() {
 	}
 
 	// Draw texture to window
+	r.w.Draw(src2dst, r.bt, r.bt.Bounds(), screen.Over, nil)
 	r.w.Draw(src2dst, r.t, r.t.Bounds(), screen.Over, nil)
 }
 
 func (r *RenderState) SetTileColour(px, py int, colour color.Color) {
 	for xi := 0; xi < r.backgroundScale; xi++ {
 		for yi := 0; yi < r.backgroundScale; yi++ {
-			r.b.RGBA().Set(px+xi, py+yi, colour)
+			r.bb.RGBA().Set(px+xi, py+yi, colour)
 		}
 	}
+	r.bt.Upload(image.Point{}, r.bb, r.bb.Bounds())
+
 }
 
 func (r *RenderState) GetPixelPos(px, py int) (int, int) {
@@ -196,6 +225,8 @@ func (r *RenderState) GetWorldPos(e mouse.Event) (int, int) {
 func (r *RenderState) Release() {
 	r.t.Release()
 	r.b.Release()
+	r.bb.Release()
+	r.bt.Release()
 	r.w.Release()
 }
 
