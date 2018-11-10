@@ -11,9 +11,7 @@ import (
 
 func main() {
 	w := world.LoadFromImage("test.png")
-	fmt.Println(w)
-
-	fmt.Println("state size: %i %i", w.GetWidth(), w.GetHeight())
+	fmt.Println("state size:", w.GetWidth(), w.GetHeight())
 	for y := 0; y < w.GetHeight(); y++ {
 		for x := 0; x < w.GetWidth(); x++ {
 			if w.GetTile(x, y).Walkable() {
@@ -38,6 +36,14 @@ func main() {
 
 	})
 
+	for y := 0; y < w.GetHeight(); y++ {
+		for x := 0; x < w.GetWidth(); x++ {
+			fmt.Print(int(w.GetTile(x, y).HitCount), ",")
+		}
+		fmt.Println()
+	}
+	fmt.Println()
+
 	fmt.Println("Bottom")
 
 }
@@ -49,8 +55,8 @@ func simulate(world *world.State, r *render.RenderState) {
 		for t := range ticker.C {
 			fmt.Println(steps, "Tick at", t)
 
-			if steps%2 == 0 && steps < 10 {
-				for i := 0; i < 100; i++ {
+			if steps%2 == 0 && steps < 100 {
+				for i := 0; i < 1000; i++ {
 					world.AddRandom()
 				}
 			} else {

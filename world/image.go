@@ -22,7 +22,7 @@ func LoadFromImage(path string) State {
 	}
 	width := i.Bounds().Dx()
 	height := i.Bounds().Dy()
-	fmt.Println("image size: %i %i", width, height)
+	fmt.Println("image size:", width, height)
 	world := State{width: width, height: height, background: i, tiles: make([][]Tile, width)}
 
 	for x := 0; x < world.width; x++ {
@@ -32,7 +32,7 @@ func LoadFromImage(path string) State {
 			world.tiles[x][y].walkable = walk
 		}
 	}
-	fmt.Println("tiles size %i %i", len(world.tiles), len(world.tiles[0]))
+	fmt.Println("tiles size", len(world.tiles), len(world.tiles[0]))
 
 	return world
 }

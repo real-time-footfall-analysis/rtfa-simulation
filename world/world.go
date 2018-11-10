@@ -17,6 +17,7 @@ type Point struct {
 type Tile struct {
 	walkable bool
 	People   []Point
+	HitCount int
 }
 
 func (t *Tile) Walkable() bool {
@@ -65,21 +66,24 @@ func (w *State) MoveRandom() {
 		x := rand.Intn(w.GetWidth())
 		y := rand.Intn(w.GetHeight())
 		tile := w.GetTile(x, y)
+		tile.HitCount++
+
 		if len(tile.People) > 0 {
 			i := rand.Intn(len(tile.People))
 			p := tile.People[i]
-			mx := (rand.Float64() - 0.5) / 2
-			my := (rand.Float64() - 0.5) / 2
+			mx := (rand.Float64() - 0.5) / 4
+			my := (rand.Float64() - 0.5) / 4
 			if p.X+mx >= 0 && int(p.X+mx) < w.GetWidth() &&
 				p.Y+my >= 0 && int(p.Y+my) < w.GetHeight() {
 				if math.Floor(p.X+mx) == math.Floor(p.X) &&
 					math.Floor(p.Y+my) == math.Floor(p.Y) {
-					p.X = p.X + mx
-					p.Y = p.Y + my
+
+					tile.People[i].X = p.X + mx
+					tile.People[i].Y = p.Y + my
 				} else {
 					tile.People = append(tile.People[:i], tile.People[i+1:]...)
-					newtile := w.GetTile(int(p.X+mx), int(p.Y+my))
-					newtile.People = append(newtile.People, Point{p.X + mx, p.Y + my, p.C})
+					newTile := w.GetTile(int(p.X+mx), int(p.Y+my))
+					newTile.People = append(newTile.People, Point{p.X + mx, p.Y + my, p.C})
 				}
 				return
 			} else {
