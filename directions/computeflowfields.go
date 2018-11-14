@@ -22,7 +22,13 @@ type Tile struct {
 }
 
 type MacroMap struct {
-	Tiles [][]Tile // The tiles.
+	Width  int
+	Height int
+	tiles  [][]Tile // The tiles.
+}
+
+func (mm *MacroMap) GetTile(x, y int) (Tile, error) {
+	return mm.tiles[y][x], nil
 }
 
 type FlowField MacroMap
