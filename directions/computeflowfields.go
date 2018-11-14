@@ -1,5 +1,7 @@
 package directions
 
+import "math"
+
 type Direction int
 
 const (
@@ -9,24 +11,37 @@ const (
 	DirectionW
 )
 
-type Destination struct {
+type Destination struct { // Indicies into the macromap
 	X int
 	Y int
 }
 
 type Tile struct {
-	NextDirection Direction
-	Walkable      bool
-	Dist          int // This is only used internally for dijkstra
+	NextDirection Direction                 // The next direction someone should follow to go to the destination from this cell
+	Walkable      bool                      // If this cell is a wall or not
+	RegionIds     []int                     // The region ID's this tile is in
+	Dists         map[Destination]float64   // Used internally for dijkstra
+	Directions    map[Destination]Direction // Direction to destination
 }
 
 type MacroMap struct {
-	tiles [][]Tile
+	Width     int
+	Height    int
+	TileWidth float64  // Width of a tile
+	tiles     [][]Tile // The tiles.
 }
 
-type FlowField MacroMap
+func (mm *MacroMap) GetTileHighRes(x, y float64) (*Tile, error) {
 
-func generateFlowField(macroMap MacroMap, destination Destination) (FlowField, error) {
+	return mm.GetTile(int(math.Floor(x/mm.TileWidth)), int(math.Floor(y/mm.TileWidth)))
+
+}
+
+func (mm *MacroMap) GetTile(x, y int) (*Tile, error) {
+	return &mm.tiles[y][x], nil
+}
+
+func generateFlowField(macroMap MacroMap, destination Destination) error {
 
 	//
 
