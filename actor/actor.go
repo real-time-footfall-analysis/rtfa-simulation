@@ -1,8 +1,8 @@
 package actor
 
 type Point struct {
-	X int
-	Y int
+	X float64
+	Y float64
 }
 
 type Destination struct {
@@ -16,9 +16,11 @@ type Likelyhood struct {
 }
 
 type Actor struct {
-	Loc         Point        // The point where this person current is stood
-	Tick        int          // The current tick, from a base of 0, to measure time
-	Likelyhoods []Likelyhood // The array of likelyhoods for their preferences
+	Loc         Point              // The point where this person current is stood
+	Tick        int                // The current tick, from a base of 0, to measure time
+	Likelyhoods []Likelyhood       // The array of likelyhoods for their preferences
+	RegionIds   map[int32]struct{} // map (set) containing keys of all regions the actor is in
+	UUID        string             // UUID of this actor for sending updates
 }
 
 func (l *Likelyhood) ProbabilityAtTick(tick int) float64 {
