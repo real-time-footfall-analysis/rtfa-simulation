@@ -33,6 +33,9 @@ func (mm *MacroMap) GetTile(x, y int) (Tile, error) {
 
 type FlowField MacroMap
 
+// Map of directions to their flow fields
+var FlowFields = make(map[Direction]*FlowField)
+
 func generateFlowField(macroMap MacroMap, destination Destination) (FlowField, error) {
 
 	//
