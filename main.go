@@ -10,7 +10,7 @@ import (
 )
 
 func main() {
-	w := world.LoadFromImage("test2.png")
+	w := world.LoadFromImage("test.png")
 	fmt.Println("state size:", w.GetWidth(), w.GetHeight())
 	for y := 0; y < w.GetHeight(); y++ {
 		for x := 0; x < w.GetWidth(); x++ {
@@ -50,15 +50,18 @@ func main() {
 
 func simulate(world *world.State, r *render.RenderState) {
 	time.Sleep(5 * time.Second)
-	ticker := time.NewTicker(500 * time.Millisecond)
+	ticker := time.NewTicker(100 * time.Millisecond)
 	go func() {
+		people := 0
 		steps := 0
 		for t := range ticker.C {
 			fmt.Println(steps, "Tick at", t)
 
-			if steps%2 == 0 && steps < 100 {
-				for i := 0; i < 1000; i++ {
+			if steps%2 == 0 && steps < 1000 {
+				for i := 0; i < 10000; i++ {
 					world.AddRandom()
+					people++
+
 				}
 			} else {
 				for i := 0; i < 100*steps; i++ {
@@ -66,6 +69,7 @@ func simulate(world *world.State, r *render.RenderState) {
 				}
 			}
 			r.SendEvent(render.UpdateEvent{world})
+			fmt.Println("people: ", people)
 			steps++
 		}
 	}()
