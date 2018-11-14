@@ -10,13 +10,14 @@ const (
 )
 
 type Destination struct {
-	x int
-	y int
+	X int
+	Y int
 }
 
 type Tile struct {
-	nextDirection Direction
-	walkable      bool
+	NextDirection Direction
+	Walkable      bool
+	Dist          int // This is only used internally for dijkstra
 }
 
 type MacroMap struct {
@@ -25,7 +26,7 @@ type MacroMap struct {
 
 type FlowField MacroMap
 
-func generateFlowField(macroMap MacroMap, destination Destination) (FlowField, Error) {
+func generateFlowField(macroMap MacroMap, destination Destination) (FlowField, error) {
 
 	//
 
