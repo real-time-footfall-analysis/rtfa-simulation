@@ -9,19 +9,20 @@ const (
 	DirectionW
 )
 
-type Destination struct {
+type Destination struct { // Indicies into the macromap
 	X int
 	Y int
 }
 
 type Tile struct {
-	NextDirection Direction
-	Walkable      bool
-	Dist          int // This is only used internally for dijkstra
+	NextDirection Direction // The next direction someone should follow to go to the destination from this cell
+	Walkable      bool      // If this cell is a wall or not
+	RegionIds     []int     // The region ID's this tile is in
+	Dist          int       // This is only used internally for dijkstra
 }
 
 type MacroMap struct {
-	tiles [][]Tile
+	Tiles [][]Tile // The tiles.
 }
 
 type FlowField MacroMap
