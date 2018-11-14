@@ -1,7 +1,13 @@
 package directions
 
-import "math"
+import (
+	"fmt"
+	"math"
+)
 
+type pairInts struct {
+	fst, snd int
+}
 type Direction int
 
 const (
@@ -9,6 +15,7 @@ const (
 	DirectionS
 	DirectionE
 	DirectionW
+	DirectionUnknown
 )
 
 type Destination struct { // Indicies into the macromap
@@ -22,6 +29,8 @@ type Tile struct {
 	RegionIds     []int                     // The region ID's this tile is in
 	Dists         map[Destination]float64   // Used internally for dijkstra
 	Directions    map[Destination]Direction // Direction to destination
+	X             int                       // X co-ordinate
+	Y             int                       // Y co-ordinate
 }
 
 type MacroMap struct {
@@ -31,6 +40,25 @@ type MacroMap struct {
 	tiles     [][]Tile // The tiles.
 }
 
+// Maps pairs of (x, y) co-ordinates (+-1 or 0) to directions
+var deltasToDirection map[pairInts]Direction
+
+func Init() {
+
+	initDeltasToDirection()
+
+}
+
+func initDeltasToDirection() {
+
+	deltasToDirection = make(map[pairInts]Direction)
+	deltasToDirection[pairInts{0, 1}] = DirectionN
+	deltasToDirection[pairInts{1, 0}] = DirectionE
+	deltasToDirection[pairInts{0, -1}] = DirectionS
+	deltasToDirection[pairInts{-1, 0}] = DirectionW
+
+}
+
 func (mm *MacroMap) GetTileHighRes(x, y float64) (*Tile, error) {
 
 	return mm.GetTile(int(math.Floor(x/mm.TileWidth)), int(math.Floor(y/mm.TileWidth)))
@@ -38,6 +66,9 @@ func (mm *MacroMap) GetTileHighRes(x, y float64) (*Tile, error) {
 }
 
 func (mm *MacroMap) GetTile(x, y int) (*Tile, error) {
+	if x < 0 || x >= mm.Width || y < 0 || y >= mm.Height {
+		return nil, fmt.Errorf("Invalid co-ordinates (%d, %d)", x, y)
+	}
 	return &mm.tiles[y][x], nil
 }
 
