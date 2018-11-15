@@ -15,7 +15,7 @@ import (
 )
 
 func main() {
-	w := world.LoadFromImage("test4.png")
+	w := world.LoadFromImage("test5.png")
 	w.LoadRegions("testRegions.json", 53.867225, -1.380985)
 	fmt.Println("state size:", w.GetWidth(), w.GetHeight())
 	for y := 0; y < w.GetHeight(); y++ {
@@ -42,21 +42,13 @@ func main() {
 
 	})
 
-	for y := 0; y < w.GetHeight(); y++ {
-		for x := 0; x < w.GetWidth(); x++ {
-			fmt.Print(int(w.GetTile(x, y).HitCount), ",")
-		}
-		fmt.Println()
-	}
-	fmt.Println()
-
 	fmt.Println("Bottom")
 
 }
 
 func simulate(world *world.State, r *render.RenderState) {
 	//time.Sleep(5 * time.Second)
-	ticker := time.NewTicker(10 * time.Millisecond)
+	ticker := time.NewTicker(100 * time.Millisecond)
 	go func() {
 		people := 0
 		steps := 0
