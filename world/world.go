@@ -69,45 +69,50 @@ func (w *State) AddRandom() {
 	w.allPeople = append(w.allPeople, &person)
 }
 
+func (w *State) MoveIndividual(person *individual.Individual, theta float64, distance float64) {
+
+	x, y := person.Loc.GetXY()
+	tile := w.GetTile(int(x), int(y))
+
+	cx, cy := person.Loc.GetXY()
+	collide, nx, ny := w.movementintersects(cx, cy, theta, distance)
+	if collide {
+		fmt.Println("COLLIDED")
+	}
+	if nx >= 0 && int(nx) < w.GetWidth() &&
+		ny >= 0 && int(ny) < w.GetHeight() {
+		person.Loc.SetXY(nx, ny)
+		if math.Floor(nx) == math.Floor(cx) &&
+			math.Floor(ny) == math.Floor(cy) {
+
+		} else {
+			pos := -1
+			for ti, p := range tile.People {
+				if p.UUID == person.UUID {
+					pos = ti
+				}
+			}
+			if pos < 0 {
+				log.Fatal("how?")
+			}
+
+			tile.People = append(tile.People[:pos], tile.People[pos+1:]...)
+			newTile := w.GetTile(int(nx), int(ny))
+			newTile.People = append(newTile.People, person)
+		}
+	} else {
+		log.Fatal("cannot leave bounry like this")
+	}
+}
+
 func (w *State) MoveAll() {
 
-	for i, _ := range w.allPeople {
-		x, y := w.allPeople[i].Loc.GetXY()
-		tile := w.GetTile(int(x), int(y))
-
+	for _, p := range w.allPeople {
 		theta := (rand.Float64() * 2 * math.Pi) * 0.9
-		distance := math.Sqrt(rand.Float64()) / 16
+		distance := math.Sqrt(rand.Float64()) / 8
 
-		fmt.Println("moving: ", w.allPeople[i].UUID)
-		cx, cy := w.allPeople[i].Loc.GetXY()
-		collide, nx, ny := w.movementintersects(cx, cy, theta, distance)
-		if collide {
-			fmt.Println("COLLIDED")
-		}
-		if nx >= 0 && int(nx) < w.GetWidth() &&
-			ny >= 0 && int(ny) < w.GetHeight() {
-			w.allPeople[i].Loc.SetXY(nx, ny)
-			if math.Floor(nx) == math.Floor(cx) &&
-				math.Floor(ny) == math.Floor(cy) {
+		w.MoveIndividual(p, theta, distance)
 
-			} else {
-				pos := -1
-				for ti, p := range tile.People {
-					if p.UUID == w.allPeople[i].UUID {
-						pos = ti
-					}
-				}
-				if pos < 0 {
-					log.Fatal("how?")
-				}
-
-				tile.People = append(tile.People[:pos], tile.People[pos+1:]...)
-				newTile := w.GetTile(int(nx), int(ny))
-				newTile.People = append(newTile.People, w.allPeople[i])
-			}
-		} else {
-			log.Fatal("cannot leave bounry like this")
-		}
 	}
 
 }
