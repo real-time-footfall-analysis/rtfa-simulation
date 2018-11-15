@@ -6,13 +6,15 @@ import (
 	"github.com/real-time-footfall-analysis/rtfa-simulation/individual"
 	"image"
 	"image/color"
+	"log"
 	"math"
 	"math/rand"
+	"strconv"
 )
 
 type Tile struct {
 	walkable bool
-	People   []individual.Individual
+	People   []*individual.Individual
 	HitCount int
 }
 
@@ -29,6 +31,7 @@ type State struct {
 	height     int
 	background image.Image
 	Regions    []Region
+	allPeople  []*individual.Individual
 }
 
 func (w *State) GetWidth() int {
@@ -50,6 +53,8 @@ func (w *State) GetTile(x, y int) *Tile {
 	return &(w.tiles[x][y])
 }
 
+var counter int = 0
+
 func (w *State) AddRandom() {
 	x := rand.Intn(w.GetWidth()-2) + 1
 	y := rand.Intn(w.GetHeight()-2) + 1
@@ -58,42 +63,51 @@ func (w *State) AddRandom() {
 	tile := w.GetTile(x, y)
 	r, g, b := color.YCbCrToRGB(uint8(100), uint8(rand.Intn(256)), uint8(rand.Intn(256)))
 	c := color.RGBA{r, g, b, 255}
-	tile.People = append(tile.People, individual.Individual{Loc: geometry.NewPoint(float64(x)+xf, float64(y)+yf), Colour: c})
+	person := individual.Individual{Loc: geometry.NewPoint(float64(x)+xf, float64(y)+yf), Colour: c, UUID: "SimBot-" + strconv.Itoa(counter)}
+	tile.People = append(tile.People, &person)
+	counter++
+	w.allPeople = append(w.allPeople, &person)
 }
 
-func (w *State) MoveRandom() {
-	for {
-		x := rand.Intn(w.GetWidth())
-		y := rand.Intn(w.GetHeight())
-		tile := w.GetTile(x, y)
-		tile.HitCount++
+func (w *State) MoveAll() {
 
-		if len(tile.People) > 0 {
-			i := rand.Intn(len(tile.People))
-			p := tile.People[i]
-			theta := (rand.Float64() * 2 * math.Pi)
-			distance := math.Sqrt(rand.Float64())
-			cx, cy := p.Loc.GetLatestXY()
-			collide, nx, ny := w.movementintersects(cx, cy, theta, distance)
-			if collide {
-				fmt.Println("COLLIDED")
-			}
-			if nx >= 0 && int(nx) < w.GetWidth() &&
-				ny >= 0 && int(ny) < w.GetHeight() {
-				tile.People[i].Loc.SetXY(nx, ny)
-				if math.Floor(nx) == math.Floor(cx) &&
-					math.Floor(ny) == math.Floor(cy) {
+	for i, _ := range w.allPeople {
+		x, y := w.allPeople[i].Loc.GetXY()
+		tile := w.GetTile(int(x), int(y))
 
-				} else {
-					tile.People = append(tile.People[:i], tile.People[i+1:]...)
-					newTile := w.GetTile(int(nx), int(ny))
-					newTile.People = append(newTile.People, p)
-				}
-				return
+		theta := (rand.Float64() * 2 * math.Pi) * 0.9
+		distance := math.Sqrt(rand.Float64()) / 16
+
+		fmt.Println("moving: ", w.allPeople[i].UUID)
+		cx, cy := w.allPeople[i].Loc.GetXY()
+		collide, nx, ny := w.movementintersects(cx, cy, theta, distance)
+		if collide {
+			fmt.Println("COLLIDED")
+		}
+		if nx >= 0 && int(nx) < w.GetWidth() &&
+			ny >= 0 && int(ny) < w.GetHeight() {
+			w.allPeople[i].Loc.SetXY(nx, ny)
+			if math.Floor(nx) == math.Floor(cx) &&
+				math.Floor(ny) == math.Floor(cy) {
+
 			} else {
-				tile.People = append(tile.People[:i], tile.People[i+1:]...)
-				return
+				pos := -1
+				for ti, p := range tile.People {
+					if p.UUID == w.allPeople[i].UUID {
+						pos = ti
+					}
+				}
+				if pos < 0 {
+					log.Fatal("how?")
+				}
+
+				tile.People = append(tile.People[:pos], tile.People[pos+1:]...)
+				newTile := w.GetTile(int(nx), int(ny))
+				newTile.People = append(newTile.People, w.allPeople[i])
 			}
+		} else {
+			log.Fatal("cannot leave bounry like this")
 		}
 	}
+
 }

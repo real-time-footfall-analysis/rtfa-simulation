@@ -1,5 +1,7 @@
 package geometry
 
+import "fmt"
+
 var tick = true
 var step = 1
 
@@ -7,11 +9,11 @@ var step = 1
 // collision detection is able to write a new state, FlipTick should be called once and only once at the end of each
 // time step
 type Point struct {
-	ax float64
-	ay float64
-	bx float64
-	by float64
-	s  int
+	ax   float64
+	ay   float64
+	bx   float64
+	by   float64
+	last bool
 }
 
 func (p Point) GetXY() (float64, float64) {
@@ -23,30 +25,28 @@ func (p Point) GetXY() (float64, float64) {
 }
 
 func (p Point) GetLatestXY() (float64, float64) {
-	if p.s == step {
-		if tick {
-			return p.bx, p.by
-		} else {
-			return p.ax, p.ay
-		}
+	if p.last {
+		return p.ax, p.ay
 	} else {
-		return p.GetXY()
+		return p.bx, p.by
 	}
 }
 
 func (p *Point) SetXY(x, y float64) {
+	fmt.Println("SET", x, y, tick, step)
 	if tick {
 		p.bx = x
 		p.by = y
+		p.last = false
 	} else {
 		p.ax = x
 		p.ay = y
+		p.last = true
 	}
-	p.s = step
 }
 
 func NewPoint(x, y float64) Point {
-	return Point{ax: x, ay: y, bx: x, by: y, s: step}
+	return Point{ax: x, ay: y, bx: x, by: y, last: true}
 }
 
 func FlipTick() {

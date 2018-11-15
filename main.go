@@ -5,9 +5,9 @@ import (
 	"time"
 
 	"github.com/real-time-footfall-analysis/rtfa-simulation/directions"
+	"github.com/real-time-footfall-analysis/rtfa-simulation/geometry"
 	"github.com/real-time-footfall-analysis/rtfa-simulation/group"
 	"github.com/real-time-footfall-analysis/rtfa-simulation/individual"
-	"github.com/real-time-footfall-analysis/rtfa-simulation/geometry"
 	"github.com/real-time-footfall-analysis/rtfa-simulation/render"
 	"github.com/real-time-footfall-analysis/rtfa-simulation/world"
 	"golang.org/x/exp/shiny/driver"
@@ -56,27 +56,23 @@ func main() {
 
 func simulate(world *world.State, r *render.RenderState) {
 	//time.Sleep(5 * time.Second)
-	ticker := time.NewTicker(100 * time.Millisecond)
+	ticker := time.NewTicker(10 * time.Millisecond)
 	go func() {
 		people := 0
 		steps := 0
+
+		for i := 0; i < 6; i++ {
+			world.AddRandom()
+			people++
+
+		}
 		for t := range ticker.C {
 			fmt.Println(steps, "Tick at", t)
 
-			if steps%2 == 0 && steps < 8 {
-				for i := 0; i < 1; i++ {
-					world.AddRandom()
-					people++
+			world.MoveAll()
 
-				}
-			} else {
-				for i := 0; i < 1; i++ {
-					fmt.Println("move")
-					world.MoveRandom()
-				}
-			}
 			r.SendEvent(render.UpdateEvent{world})
-			fmt.Println("people: ", people)
+			//fmt.Println("people: ", people)
 			steps++
 			geometry.FlipTick()
 		}

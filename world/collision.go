@@ -46,15 +46,18 @@ func (s *State) movementintersects(x, y float64, theta float64, distance float64
 	if collided {
 		distance = math.Sqrt(math.Pow(x-nx, 2) + math.Pow(y-ny, 2))
 		theta = math.Atan2(nx-x, ny-y)
+		fmt.Print("WALL CLASH - ")
 	}
 
 	// for all people in this and adjacent tiles
 	for ix := -1; ix < 2; ix++ {
 		for iy := -1; iy < 2; iy++ {
-			for _, actor := range s.GetTile(tx+ix, ty+iy).People {
-				ax, ay := actor.Loc.GetLatestXY()
+			tile := s.GetTile(tx+ix, ty+iy)
+			for i, _ := range tile.People {
+				ax, ay := tile.People[i].Loc.GetLatestXY()
 				if !(ax == x && ay == y) && intersect(nx, ny, ax, ay) {
-					fmt.Print("PEOPLE CLASH - ")
+					collided = true
+					fmt.Print("PEOPLE CLASH with ", tile.People[i].UUID, " - ")
 					cx, cy := closestPointOnLine(x, y, nx, ny, ax, ay)
 
 					closestSquared := math.Pow(cx-ax, 2) + math.Pow(cy-ay, 2)
