@@ -1,11 +1,14 @@
 package world
 
 import (
+	"bytes"
 	"encoding/json"
 	"github.com/real-time-footfall-analysis/rtfa-simulation/actor"
 	"golang.org/x/exp/errors/fmt"
+	"io/ioutil"
 	"log"
 	"math"
+	"net/http"
 	"os"
 	"time"
 )
@@ -26,8 +29,8 @@ type Region struct {
 	Lng     float64 `json:"lng,omitempty"`
 	Radius  int32   `json:"radius,omitempty"`
 	EventID int32   `json:"eventID"`
-	x       float64
-	y       float64
+	X       float64 `json:"X"`
+	Y       float64 `json:"Y"`
 	sqRad   float64
 }
 
@@ -49,14 +52,16 @@ func (s *State) LoadRegions(path string, lat, lng float64) {
 	}
 
 	for i, _ := range regions {
-		regions[i].x, regions[i].y = latLngToCoords(regions[i].Lat, regions[i].Lng, lat, lng)
+		if regions[i].X == 0 || regions[i].Y == 0 {
+			regions[i].X, regions[i].Y = latLngToCoords(regions[i].Lat, regions[i].Lng, lat, lng)
+		}
 		regions[i].sqRad = math.Pow(float64(regions[i].Radius), 2)
 		r := regions[i]
 		fmt.Println(i, " - ", r)
-		if r.x < 0 || r.x > float64(s.GetWidth()) ||
-			r.y < 0 || r.y > float64(s.GetHeight()) {
-			fmt.Printf("Warning! Region: %v - %s is outside the boundries of the world at x,y: %v, %v\n",
-				r.ID, r.Name, r.x, r.y)
+		if r.X < 0 || r.X > float64(s.GetWidth()) ||
+			r.Y < 0 || r.Y > float64(s.GetHeight()) {
+			fmt.Printf("Warning! Region: %v - %s is outside the boundries of the world at X,Y: %v, %v\n",
+				r.ID, r.Name, r.X, r.Y)
 		}
 	}
 	s.Regions = regions
@@ -65,7 +70,7 @@ func (s *State) LoadRegions(path string, lat, lng float64) {
 
 func latLngToCoords(lat, lng, latOrigin, lngOrigin float64) (float64, float64) {
 	const (
-		MetersPerLat          = 111034.60528834906 // at 45 deg
+		MetersPerLat          = 111034.60528834906 // at 45 deg lat
 		MetersPerLngAtEquator = 111319.458
 	)
 	lat -= latOrigin
@@ -76,11 +81,11 @@ func latLngToCoords(lat, lng, latOrigin, lngOrigin float64) (float64, float64) {
 	return x, y
 }
 
-func UpdateServer(regions *[]Region, actor actor.Actor, time time.Time) {
+func UpdateServer(regions *[]Region, actor *actor.Actor, time time.Time) {
 	for i, r := range *regions {
 		fmt.Println(i, " - ", r)
-		dx := actor.Loc.X - r.x
-		dy := actor.Loc.Y - r.y
+		dx := actor.Loc.X - r.X
+		dy := actor.Loc.Y - r.Y
 		distanceSquared := math.Pow(dx, 2) + math.Pow(dy, 2)
 		if r.sqRad > distanceSquared {
 			// this actor is in this region
@@ -89,7 +94,7 @@ func UpdateServer(regions *[]Region, actor actor.Actor, time time.Time) {
 				// we must send update to backend
 				u := update{EventID: r.EventID, RegionID: r.ID, UUID: actor.UUID, Entering: true, OccurredAt: time.Unix()}
 				fmt.Println(u)
-				// TODO: send update to backend
+				sendUpdate(&u)
 			}
 		} else {
 			// this actor is not in this region
@@ -98,9 +103,34 @@ func UpdateServer(regions *[]Region, actor actor.Actor, time time.Time) {
 				// we must send update to backend to say this actor is no longer in the region.
 				u := update{EventID: r.EventID, RegionID: r.ID, UUID: actor.UUID, Entering: false, OccurredAt: time.Unix()}
 				fmt.Println(u)
-				// TODO: send update to backend
+				sendUpdate(&u)
 			}
 		}
 
+	}
+}
+
+const url = "http://api.jackchorley.club/update"
+
+func sendUpdate(u *update) {
+	var jsonStr, err = json.Marshal(*u)
+	if err != nil {
+		log.Fatal("Cannot marshal update: ", *u)
+	}
+	req, err := http.NewRequest("POST", url, bytes.NewBuffer(jsonStr))
+	//req.Header.Set("X-Custom-Header", "myvalue")
+	req.Header.Set("Content-Type", "application/json")
+
+	client := &http.Client{}
+	resp, err := client.Do(req)
+	if err != nil {
+		log.Print("Cannot connect to backend")
+	} else {
+		defer resp.Body.Close()
+
+		fmt.Println("response Status:", resp.Status)
+		fmt.Println("response Headers:", resp.Header)
+		body, _ := ioutil.ReadAll(resp.Body)
+		fmt.Println("response Body:", string(body))
 	}
 }
