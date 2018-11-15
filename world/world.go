@@ -29,6 +29,7 @@ type State struct {
 	width      int
 	height     int
 	background image.Image
+	Regions    []Region
 }
 
 func (w *State) GetWidth() int {

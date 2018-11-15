@@ -15,6 +15,7 @@ import (
 
 func main() {
 	w := world.LoadFromImage("test.png")
+	w.LoadRegions("testRegions.json", 53.867225, -1.380985)
 	fmt.Println("state size:", w.GetWidth(), w.GetHeight())
 	for y := 0; y < w.GetHeight(); y++ {
 		for x := 0; x < w.GetWidth(); x++ {
