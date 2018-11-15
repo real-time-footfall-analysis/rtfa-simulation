@@ -51,22 +51,24 @@ func (s *State) movementintersects(x, y float64, theta float64, distance float64
 	for ix := -1; ix < 2; ix++ {
 		for iy := -1; iy < 2; iy++ {
 			tile := s.GetTile(tx+ix, ty+iy)
-			for i, _ := range tile.People {
-				ax, ay := tile.People[i].Loc.GetLatestXY()
-				if !(ax == x && ay == y) && intersect(nx, ny, ax, ay) {
-					collided = true
-					cx, cy := closestPointOnLine(x, y, nx, ny, ax, ay)
+			if tile != nil {
+				for i, _ := range tile.People {
+					ax, ay := tile.People[i].Loc.GetLatestXY()
+					if !(ax == x && ay == y) && intersect(nx, ny, ax, ay) {
+						collided = true
+						cx, cy := closestPointOnLine(x, y, nx, ny, ax, ay)
 
-					closestSquared := math.Pow(cx-ax, 2) + math.Pow(cy-ay, 2)
-					backdist := math.Sqrt(TwicePersonRadiusSquared - closestSquared)
+						closestSquared := math.Pow(cx-ax, 2) + math.Pow(cy-ay, 2)
+						backdist := math.Sqrt(TwicePersonRadiusSquared - closestSquared)
 
-					distance = math.Dim(distance, backdist)
+						distance = math.Dim(distance, backdist)
 
-					if distance == 0 {
-						return true, x, y
+						if distance == 0 {
+							return true, x, y
+						}
+						nx = x + distance*math.Cos(theta)
+						ny = y + distance*math.Sin(theta)
 					}
-					nx = x + distance*math.Cos(theta)
-					ny = y + distance*math.Sin(theta)
 				}
 			}
 		}
