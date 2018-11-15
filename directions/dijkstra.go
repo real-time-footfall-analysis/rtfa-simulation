@@ -47,17 +47,15 @@ func FindShortestPath(macroMap *MacroMap, destination Destination) error {
 				queue.UpdatePriority(neighbour, distToPriority(neighbour.Dists[destination]))
 				dX := tile.X - neighbour.X
 				dY := tile.Y - neighbour.Y
-				direction, ok := deltasToDirection[pairInts{dX, dY}]
 				if !ok {
 					log.Printf("Failed to convert (%d, %d) to direction", dX, dY)
 					continue
 				}
-				neighbour.Directions[destination] = direction
 			}
 		}
 
 	}
-
+	return nil
 }
 
 // Initialises queue, adding all nodes and setting distance to infinity

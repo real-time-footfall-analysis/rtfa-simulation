@@ -3,7 +3,7 @@ package world
 import (
 	"bytes"
 	"encoding/json"
-	"github.com/real-time-footfall-analysis/rtfa-simulation/actor"
+	"github.com/real-time-footfall-analysis/rtfa-simulation/individual"
 	"golang.org/x/exp/errors/fmt"
 	"io/ioutil"
 	"log"
@@ -81,11 +81,12 @@ func latLngToCoords(lat, lng, latOrigin, lngOrigin float64) (float64, float64) {
 	return x, y
 }
 
-func UpdateServer(regions *[]Region, actor *actor.Actor, time time.Time) {
+func UpdateServer(regions *[]Region, actor *individual.Individual, time time.Time) {
 	for i, r := range *regions {
 		fmt.Println(i, " - ", r)
-		dx := actor.Loc.X - r.X
-		dy := actor.Loc.Y - r.Y
+		x, y := actor.Loc.GetLatestXY()
+		dx := x - r.X
+		dy := y - r.Y
 		distanceSquared := math.Pow(dx, 2) + math.Pow(dy, 2)
 		if r.sqRad > distanceSquared {
 			// this actor is in this region

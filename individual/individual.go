@@ -1,15 +1,12 @@
 package individual
 
 import (
+	"github.com/real-time-footfall-analysis/rtfa-simulation/geometry"
+	"image/color"
 	"math/rand"
 
 	"github.com/real-time-footfall-analysis/rtfa-simulation/directions"
 )
-
-type Point struct {
-	X float64
-	Y float64
-}
 
 type Likelihood struct {
 	Destination          directions.Destination // If this likelihood is picked - where should we go
@@ -18,10 +15,13 @@ type Likelihood struct {
 }
 
 type Individual struct {
-	Loc         Point        // The point where this person current is stood
-	Tick        int          // The current tick, from a base of 0, to measure time
-	Likelihoods []Likelihood // The array of likelihoods for their preferences
-	StepSize    float64      // The average size step that the person will walk at (picked from a normal distribution)
+	Loc         geometry.Point     // The point where this person current is stood
+	Tick        int                // The current tick, from a base of 0, to measure time
+	Likelihoods []Likelihood       // The array of likelihoods for their preferences
+	StepSize    float64            // The average size step that the person will walk at (picked from a normal distribution)
+	RegionIds   map[int32]struct{} // map (set) containing keys of all regions the actor is in
+	UUID        string             // UUID of this actor for sending updates
+	Colour      color.Color        // colour to render this individual
 }
 
 func (l *Likelihood) ProbabilityAtTick(tick int) float64 {
@@ -76,7 +76,7 @@ func (a *Individual) requestedDestination() directions.Destination {
 }
 
 func (i *Individual) DirectionForDestination(dest directions.Destination, macroMap *directions.MacroMap) directions.Direction {
-	tile, err := macroMap.GetTileHighRes(i.Loc.X, i.Loc.Y)
+	tile, err := macroMap.GetTileHighRes(i.Loc.GetXY())
 	if err != nil {
 		return directions.DirectionUnknown
 	}

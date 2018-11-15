@@ -151,7 +151,8 @@ func (r *RenderState) Step() bool {
 			for y := 0; y < e.World.GetHeight(); y++ {
 				tile := e.World.GetTile(x, y)
 				for _, p := range tile.People {
-					drawPersonInBuffer(r, p.X, p.Y, p.C)
+					x, y := p.Loc.GetLatestXY()
+					drawPersonInBuffer(r, x, y, p.Colour)
 				}
 			}
 		}
