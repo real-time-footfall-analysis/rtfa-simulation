@@ -29,6 +29,7 @@ type RenderState struct {
 	backgroundScale int
 	i               image.Image
 	mousePressed    bool
+	world           *world.State
 }
 
 type UpdateEvent struct {
@@ -115,7 +116,6 @@ func (r *RenderState) Step() bool {
 	}
 	fmt.Printf(format, e)
 	*/
-	var worldState *world.State
 	switch e := e.(type) {
 	case lifecycle.Event:
 		if e.To == lifecycle.StageDead {
@@ -134,9 +134,9 @@ func (r *RenderState) Step() bool {
 		if r.mousePressed {
 			px, py := r.GetPixelPos(r.GetWorldPos(e))
 			r.SetTileColour(px, py, color.Black)
-			if worldState != nil {
+			if r.world != nil {
 				tx, ty := r.GetWorldPos(e)
-				worldState.GetTile(tx, ty).SetWalkable(false)
+				r.world.GetTile(tx, ty).SetWalkable(false)
 			}
 			r.Redraw()
 		}
@@ -148,9 +148,8 @@ func (r *RenderState) Step() bool {
 	case paint.Event:
 		r.Redraw()
 	case UpdateEvent:
-		//r.loadOriginal(e.World.GetImage())
 		r.resetPeopleBuffer()
-
+		r.world = e.World
 		for x := 0; x < e.World.GetWidth(); x++ {
 			for y := 0; y < e.World.GetHeight(); y++ {
 				tile := e.World.GetTile(x, y)
