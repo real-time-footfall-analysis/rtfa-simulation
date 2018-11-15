@@ -75,10 +75,8 @@ func (w *State) MoveIndividual(person *individual.Individual, theta float64, dis
 	tile := w.GetTile(int(x), int(y))
 
 	cx, cy := person.Loc.GetXY()
-	collide, nx, ny := w.movementintersects(cx, cy, theta, distance)
-	if collide {
-		fmt.Println("COLLIDED")
-	}
+	_, nx, ny := w.movementintersects(cx, cy, theta, distance)
+
 	if nx >= 0 && int(nx) < w.GetWidth() &&
 		ny >= 0 && int(ny) < w.GetHeight() {
 		person.Loc.SetXY(nx, ny)

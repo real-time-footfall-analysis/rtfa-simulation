@@ -1,7 +1,5 @@
 package geometry
 
-import "fmt"
-
 var tick = true
 var step = 1
 
@@ -33,7 +31,6 @@ func (p Point) GetLatestXY() (float64, float64) {
 }
 
 func (p *Point) SetXY(x, y float64) {
-	fmt.Println("SET", x, y, tick, step)
 	if tick {
 		p.bx = x
 		p.by = y
