@@ -136,7 +136,9 @@ func (r *RenderState) Step() bool {
 			r.SetTileColour(px, py, color.Black)
 			if r.world != nil {
 				tx, ty := r.GetWorldPos(e)
-				r.world.GetTile(tx, ty).SetWalkable(false)
+				if tx >= 0 {
+					r.world.GetTile(tx, ty).SetWalkable(false)
+				}
 			}
 			r.Redraw()
 		}
@@ -222,8 +224,16 @@ func (r *RenderState) GetPixelPos(px, py int) (int, int) {
 }
 
 func (r *RenderState) GetWorldPos(e mouse.Event) (int, int) {
-	px := int(float64(e.X)/r.windowScale) / r.backgroundScale
-	py := int(float64(e.Y)/r.windowScale) / r.backgroundScale
+	px := int(float64(e.X) / r.windowScale)
+	if px < 0 || px >= r.i.Bounds().Dx() {
+		return -1, -1
+	}
+	px /= r.backgroundScale
+	py := int(float64(e.Y) / r.windowScale)
+	if py < 0 || py >= r.i.Bounds().Dy() {
+		return -1, -1
+	}
+	py /= r.backgroundScale
 	return px, py
 }
 
