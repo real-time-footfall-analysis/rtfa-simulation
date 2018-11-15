@@ -77,7 +77,8 @@ func initQueue(macroMap *MacroMap, dest Destination) (*pq.PriorityQueue, error) 
 				continue
 			}
 
-			tile.Dists[dest] = math.MaxFloat64
+			tile.Dists[dest] = math.Inf(1)
+			tile.Directions[dest] = DirectionUnknown
 			queue.Insert(tile, distToPriority(tile.Dists[dest]))
 
 		}

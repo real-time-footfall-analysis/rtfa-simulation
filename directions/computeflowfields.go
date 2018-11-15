@@ -16,6 +16,7 @@ const (
 	DirectionE
 	DirectionW
 	DirectionUnknown
+	None
 )
 
 type Destination struct { // Indicies into the macromap
@@ -24,13 +25,12 @@ type Destination struct { // Indicies into the macromap
 }
 
 type Tile struct {
-	NextDirection Direction                 // The next direction someone should follow to go to the destination from this cell
-	Walkable      bool                      // If this cell is a wall or not
-	RegionIds     []int                     // The region ID's this tile is in
-	Dists         map[Destination]float64   // Used internally for dijkstra
-	Directions    map[Destination]Direction // Direction to destination
-	X             int                       // X co-ordinate
-	Y             int                       // Y co-ordinate
+	Walkable   bool                      // If this cell is a wall or not
+	RegionIds  []int                     // The region ID's this tile is in
+	Dists      map[Destination]float64   // Used internally for dijkstra
+	Directions map[Destination]Direction // Direction to destination
+	X          int                       // X co-ordinate
+	Y          int                       // Y co-ordinate
 }
 
 type MacroMap struct {
