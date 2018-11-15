@@ -115,7 +115,7 @@ func (r *RenderState) Step() bool {
 	}
 	fmt.Printf(format, e)
 	*/
-
+	var worldState *world.State
 	switch e := e.(type) {
 	case lifecycle.Event:
 		if e.To == lifecycle.StageDead {
@@ -134,6 +134,10 @@ func (r *RenderState) Step() bool {
 		if r.mousePressed {
 			px, py := r.GetPixelPos(r.GetWorldPos(e))
 			r.SetTileColour(px, py, color.Black)
+			if worldState != nil {
+				tx, ty := r.GetWorldPos(e)
+				worldState.GetTile(tx, ty).SetWalkable(false)
+			}
 			r.Redraw()
 		}
 	case size.Event:
@@ -151,7 +155,9 @@ func (r *RenderState) Step() bool {
 			for y := 0; y < e.World.GetHeight(); y++ {
 				tile := e.World.GetTile(x, y)
 				for _, p := range tile.People {
-					drawPersonInBuffer(r, p.X, p.Y, p.C)
+					//fmt.Print(p)
+					x, y := p.Loc.GetLatestXY()
+					drawPersonInBuffer(r, x, y, p.Colour)
 				}
 			}
 		}
@@ -166,7 +172,7 @@ func drawPersonInBuffer(r *RenderState, x, y float64, c color.Color) {
 	ix := int(x * float64(r.backgroundScale))
 	iy := int(y * float64(r.backgroundScale))
 
-	p := 2
+	p := 3
 	pr := r.backgroundScale / p
 	if pr == 0 {
 		pr = 1

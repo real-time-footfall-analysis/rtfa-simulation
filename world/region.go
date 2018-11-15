@@ -84,8 +84,9 @@ func latLngToCoords(lat, lng, latOrigin, lngOrigin float64) (float64, float64) {
 func UpdateServer(regions *[]Region, actor *actor.Actor, time time.Time) {
 	for i, r := range *regions {
 		fmt.Println(i, " - ", r)
-		dx := actor.Loc.X - r.X
-		dy := actor.Loc.Y - r.Y
+		x, y := actor.Loc.GetLatestXY()
+		dx := x - r.X
+		dy := y - r.Y
 		distanceSquared := math.Pow(dx, 2) + math.Pow(dy, 2)
 		if r.sqRad > distanceSquared {
 			// this actor is in this region

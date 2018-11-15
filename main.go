@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"github.com/real-time-footfall-analysis/rtfa-simulation/geometry"
 	"github.com/real-time-footfall-analysis/rtfa-simulation/render"
 	"github.com/real-time-footfall-analysis/rtfa-simulation/world"
 	"golang.org/x/exp/shiny/driver"
@@ -10,7 +11,7 @@ import (
 )
 
 func main() {
-	w := world.LoadFromImage("test3.png")
+	w := world.LoadFromImage("test4.png")
 	w.LoadRegions("testRegions.json", 53.867225, -1.380985)
 	fmt.Println("state size:", w.GetWidth(), w.GetHeight())
 	for y := 0; y < w.GetHeight(); y++ {
@@ -50,27 +51,29 @@ func main() {
 }
 
 func simulate(world *world.State, r *render.RenderState) {
-	time.Sleep(5 * time.Second)
+	//time.Sleep(5 * time.Second)
 	ticker := time.NewTicker(500 * time.Millisecond)
 	go func() {
 		steps := 0
 		for t := range ticker.C {
 			fmt.Println(steps, "Tick at", t)
 
-			if steps%2 == 0 && steps < 100 {
-				for i := 0; i < 1000; i++ {
+			if steps%2 == 0 && steps < 8 {
+				for i := 0; i < 1; i++ {
 					world.AddRandom()
 				}
 			} else {
-				for i := 0; i < 100*steps; i++ {
+				for i := 0; i < 1; i++ {
+					fmt.Println("move")
 					world.MoveRandom()
 				}
 			}
 			r.SendEvent(render.UpdateEvent{world})
 			steps++
+			geometry.FlipTick()
 		}
 	}()
-	time.Sleep(60 * time.Second)
+	time.Sleep(600 * time.Second)
 	ticker.Stop()
 	fmt.Println("Ticker stopped")
 }

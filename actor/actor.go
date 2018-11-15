@@ -1,9 +1,9 @@
 package actor
 
-type Point struct {
-	X float64
-	Y float64
-}
+import (
+	"github.com/real-time-footfall-analysis/rtfa-simulation/geometry"
+	"image/color"
+)
 
 type Destination struct {
 	name string
@@ -16,11 +16,12 @@ type Likelyhood struct {
 }
 
 type Actor struct {
-	Loc         Point              // The point where this person current is stood
+	Loc         geometry.Point     // The point where this person current is stood
 	Tick        int                // The current tick, from a base of 0, to measure time
 	Likelyhoods []Likelyhood       // The array of likelyhoods for their preferences
 	RegionIds   map[int32]struct{} // map (set) containing keys of all regions the actor is in
 	UUID        string             // UUID of this actor for sending updates
+	Colour      color.Color        // Colour to display person as
 }
 
 func (l *Likelyhood) ProbabilityAtTick(tick int) float64 {

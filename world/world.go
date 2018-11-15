@@ -2,26 +2,25 @@ package world
 
 import (
 	"fmt"
+	"github.com/real-time-footfall-analysis/rtfa-simulation/actor"
+	"github.com/real-time-footfall-analysis/rtfa-simulation/geometry"
 	"image"
 	"image/color"
 	"math"
 	"math/rand"
 )
 
-type Point struct {
-	X float64
-	Y float64
-	C color.Color
-}
-
 type Tile struct {
 	walkable bool
-	People   []Point
+	People   []actor.Actor
 	HitCount int
 }
 
 func (t *Tile) Walkable() bool {
 	return t.walkable
+}
+func (t *Tile) SetWalkable(b bool) {
+	t.walkable = b
 }
 
 type State struct {
@@ -52,14 +51,14 @@ func (w *State) GetTile(x, y int) *Tile {
 }
 
 func (w *State) AddRandom() {
-	x := rand.Intn(w.GetWidth())
-	y := rand.Intn(w.GetHeight())
+	x := rand.Intn(w.GetWidth()-2) + 1
+	y := rand.Intn(w.GetHeight()-2) + 1
 	xf := rand.Float64()
 	yf := rand.Float64()
 	tile := w.GetTile(x, y)
 	r, g, b := color.YCbCrToRGB(uint8(100), uint8(rand.Intn(256)), uint8(rand.Intn(256)))
 	c := color.RGBA{r, g, b, 255}
-	tile.People = append(tile.People, Point{float64(x) + xf, float64(y) + yf, c})
+	tile.People = append(tile.People, actor.Actor{Loc: geometry.NewPoint(float64(x)+xf, float64(y)+yf), Colour: c})
 }
 
 func (w *State) MoveRandom() {
@@ -72,19 +71,23 @@ func (w *State) MoveRandom() {
 		if len(tile.People) > 0 {
 			i := rand.Intn(len(tile.People))
 			p := tile.People[i]
-			mx := (rand.Float64() - 0.5) / 4
-			my := (rand.Float64() - 0.5) / 4
-			if p.X+mx >= 0 && int(p.X+mx) < w.GetWidth() &&
-				p.Y+my >= 0 && int(p.Y+my) < w.GetHeight() {
-				if math.Floor(p.X+mx) == math.Floor(p.X) &&
-					math.Floor(p.Y+my) == math.Floor(p.Y) {
+			theta := (rand.Float64() * 2 * math.Pi)
+			distance := math.Sqrt(rand.Float64())
+			cx, cy := p.Loc.GetLatestXY()
+			collide, nx, ny := w.movementintersects(cx, cy, theta, distance)
+			if collide {
+				fmt.Println("COLLIDED")
+			}
+			if nx >= 0 && int(nx) < w.GetWidth() &&
+				ny >= 0 && int(ny) < w.GetHeight() {
+				tile.People[i].Loc.SetXY(nx, ny)
+				if math.Floor(nx) == math.Floor(cx) &&
+					math.Floor(ny) == math.Floor(cy) {
 
-					tile.People[i].X = p.X + mx
-					tile.People[i].Y = p.Y + my
 				} else {
 					tile.People = append(tile.People[:i], tile.People[i+1:]...)
-					newTile := w.GetTile(int(p.X+mx), int(p.Y+my))
-					newTile.People = append(newTile.People, Point{p.X + mx, p.Y + my, p.C})
+					newTile := w.GetTile(int(nx), int(ny))
+					newTile.People = append(newTile.People, p)
 				}
 				return
 			} else {
