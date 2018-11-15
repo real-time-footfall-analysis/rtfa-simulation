@@ -2,6 +2,8 @@ package world
 
 import (
 	"fmt"
+	"github.com/real-time-footfall-analysis/rtfa-simulation/geometry"
+	"github.com/real-time-footfall-analysis/rtfa-simulation/individual"
 	"image"
 	"image/color"
 	"math"
@@ -16,7 +18,7 @@ type Point struct {
 
 type Tile struct {
 	walkable bool
-	People   []Point
+	People   []individual.Individual
 	HitCount int
 }
 
@@ -59,7 +61,7 @@ func (w *State) AddRandom() {
 	tile := w.GetTile(x, y)
 	r, g, b := color.YCbCrToRGB(uint8(100), uint8(rand.Intn(256)), uint8(rand.Intn(256)))
 	c := color.RGBA{r, g, b, 255}
-	tile.People = append(tile.People, Point{float64(x) + xf, float64(y) + yf, c})
+	tile.People = append(tile.People, individual.Individual{Loc: geometry.NewPoint(float64(x)+xf, float64(y)+yf), Colour: c})
 }
 
 func (w *State) MoveRandom() {
@@ -74,17 +76,16 @@ func (w *State) MoveRandom() {
 			p := tile.People[i]
 			mx := (rand.Float64() - 0.5) / 4
 			my := (rand.Float64() - 0.5) / 4
-			if p.X+mx >= 0 && int(p.X+mx) < w.GetWidth() &&
-				p.Y+my >= 0 && int(p.Y+my) < w.GetHeight() {
-				if math.Floor(p.X+mx) == math.Floor(p.X) &&
-					math.Floor(p.Y+my) == math.Floor(p.Y) {
-
-					tile.People[i].X = p.X + mx
-					tile.People[i].Y = p.Y + my
+			cx, cy := p.Loc.GetLatestXY()
+			if cx+mx >= 0 && int(cx+mx) < w.GetWidth() &&
+				cy+my >= 0 && int(cy+my) < w.GetHeight() {
+				tile.People[i].Loc.SetXY(cx+mx, cy+my)
+				if math.Floor(cx+mx) == math.Floor(cx) &&
+					math.Floor(cy+my) == math.Floor(cy) {
 				} else {
 					tile.People = append(tile.People[:i], tile.People[i+1:]...)
-					newTile := w.GetTile(int(p.X+mx), int(p.Y+my))
-					newTile.People = append(newTile.People, Point{p.X + mx, p.Y + my, p.C})
+					newTile := w.GetTile(int(cx+mx), int(cy+my))
+					newTile.People = append(newTile.People, p)
 				}
 				return
 			} else {

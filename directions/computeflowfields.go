@@ -75,5 +75,5 @@ func (mm *MacroMap) GetTile(x, y int) (*Tile, error) {
 func generateFlowField(macroMap MacroMap, destination Destination) error {
 
 	//
-
+	return nil
 }
