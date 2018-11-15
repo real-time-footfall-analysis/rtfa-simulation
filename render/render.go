@@ -166,7 +166,7 @@ func drawPersonInBuffer(r *RenderState, x, y float64, c color.Color) {
 	ix := int(x * float64(r.backgroundScale))
 	iy := int(y * float64(r.backgroundScale))
 
-	p := 2
+	p := 10
 	pr := r.backgroundScale / p
 	if pr == 0 {
 		pr = 1
