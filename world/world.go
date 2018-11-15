@@ -19,6 +19,9 @@ type Tile struct {
 }
 
 func (t *Tile) Walkable() bool {
+	if t == nil {
+		return false
+	}
 	return t.walkable
 }
 func (t *Tile) SetWalkable(b bool) {
@@ -49,6 +52,7 @@ func (w *State) GetImage() image.Image {
 func (w *State) GetTile(x, y int) *Tile {
 	if x < 0 || x >= w.width || y < 0 || y >= w.height {
 		fmt.Println("out of range: %i %i", x, y)
+		return nil
 	}
 	return &(w.tiles[x][y])
 }
