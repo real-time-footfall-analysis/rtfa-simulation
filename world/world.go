@@ -2,8 +2,8 @@ package world
 
 import (
 	"fmt"
-	"github.com/real-time-footfall-analysis/rtfa-simulation/actor"
 	"github.com/real-time-footfall-analysis/rtfa-simulation/geometry"
+	"github.com/real-time-footfall-analysis/rtfa-simulation/individual"
 	"image"
 	"image/color"
 	"math"
@@ -12,7 +12,7 @@ import (
 
 type Tile struct {
 	walkable bool
-	People   []actor.Actor
+	People   []individual.Individual
 	HitCount int
 }
 
@@ -58,7 +58,7 @@ func (w *State) AddRandom() {
 	tile := w.GetTile(x, y)
 	r, g, b := color.YCbCrToRGB(uint8(100), uint8(rand.Intn(256)), uint8(rand.Intn(256)))
 	c := color.RGBA{r, g, b, 255}
-	tile.People = append(tile.People, actor.Actor{Loc: geometry.NewPoint(float64(x)+xf, float64(y)+yf), Colour: c})
+	tile.People = append(tile.People, individual.Individual{Loc: geometry.NewPoint(float64(x)+xf, float64(y)+yf), Colour: c})
 }
 
 func (w *State) MoveRandom() {
