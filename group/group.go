@@ -10,7 +10,8 @@ type Group struct {
 	macroMap    *directions.MacroMap
 }
 
-func (g *Group) Next() map[*individual.Individual]directions.Direction {
+func (g *Group) Next(channel chan map[*individual.Individual]directions.Direction) {
+
 	dests := make(map[directions.Destination]int, 0)
 	bestVal := 0
 
@@ -46,5 +47,5 @@ func (g *Group) Next() map[*individual.Individual]directions.Direction {
 	for _, individual := range g.individuals {
 		directions[individual] = individual.DirectionForDestination(chosenDest, g.macroMap)
 	}
-	return directions
+	channel <- directions
 }
