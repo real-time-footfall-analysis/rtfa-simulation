@@ -69,7 +69,7 @@ func (w *State) GetTileHighRes(x, y float64) *Tile {
 
 var counter int = 0
 
-func (w *State) AddRandom() {
+func (w *State) AddRandom() *Group {
 
 	likelihood := Likelihood{
 		ProbabilityFunctions: []func(int) bool{
@@ -107,7 +107,11 @@ func (w *State) AddRandom() {
 			tile.People = append(tile.People, &person)
 			counter++
 			w.allPeople = append(w.allPeople, &person)
-			return
+			return &Group{
+				individuals: []*Individual{
+					&person,
+				},
+			}
 		}
 	}
 }
