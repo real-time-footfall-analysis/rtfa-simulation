@@ -30,7 +30,7 @@ type Destination struct { // Indicies into the macromap
 	Y int
 }
 
-func Init() {
+func InitFlowFields() {
 
 	initDeltas()
 

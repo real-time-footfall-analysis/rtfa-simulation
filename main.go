@@ -50,15 +50,19 @@ func simulate(world *State, r *RenderState) {
 		steps := 0
 
 		// Add random people
+
+		groups := make([]*Group, 0)
 		for i := 0; i < 6; i++ {
-			world.AddRandom()
+			groups = append(groups, world.AddRandom())
 			people++
 
 		}
 
-		// Add them to groups
-		// TODO:
-		groups := make([]*Group, 0)
+		InitFlowFields()
+		world.GenerateFlowField(Destination{
+			X: 20,
+			Y: 20,
+		})
 
 		// Set up parallel processing channels
 		channels := make([]chan map[*Individual]utils.OptionalFloat64, 0)
