@@ -4,10 +4,10 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/real-time-footfall-analysis/rtfa-simulation/directions"
 	"github.com/real-time-footfall-analysis/rtfa-simulation/group"
 	"github.com/real-time-footfall-analysis/rtfa-simulation/individual"
 	"github.com/real-time-footfall-analysis/rtfa-simulation/render"
+	"github.com/real-time-footfall-analysis/rtfa-simulation/utils"
 	"github.com/real-time-footfall-analysis/rtfa-simulation/world"
 	"golang.org/x/exp/shiny/driver"
 	"golang.org/x/exp/shiny/screen"
@@ -85,24 +85,33 @@ func simulate(world *world.State, r *render.RenderState) {
 
 func processTick(groups []*group.Group) {
 
-	channels := make([]chan map[*individual.Individual]directions.Direction, 0)
+	// Initial set up
+	channels := make([]chan map[*individual.Individual]utils.OptionalFloat64, 0)
 	for i := 0; i < len(groups); i++ {
-		channel := make(chan map[*individual.Individual]directions.Direction)
+		channel := make(chan map[*individual.Individual]utils.OptionalFloat64)
 		channels = append(channels, channel)
 	}
 
-	// Get the desired positions for each of the individuals in each group in parallel
+	// Get the desired positions for each of the individuals in each group in parallel for the first time
 	for i, group := range groups {
 		go group.Next(channels[i])
 	}
 
-	for _, channel := range channels {
-		// Process them as they come in
-		result := <-channel
-		movePeopleIfPossible(result)
+	for true {
+		for i, channel := range channels {
+			// Process them as they come in
+			result := <-channel
+			processMovementsForGroup(result)
+
+			// After processing, set them off again
+			group := groups[i]
+			go group.Next(channels[i])
+		}
 	}
 }
 
-func movePeopleIfPossible(map[*individual.Individual]directions.Direction) {
-	// TODO:
+func processMovementsForGroup(movements map[*individual.Individual]utils.OptionalFloat64) {
+	for individual, direction := range movements {
+
+	}
 }
