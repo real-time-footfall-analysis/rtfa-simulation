@@ -2,10 +2,10 @@ package directions
 
 import (
 	"fmt"
-	"image"
-	"image/color"
 	_ "image/png"
 	"math"
+
+	"github.com/real-time-footfall-analysis/rtfa-simulation/world"
 )
 
 type pairInts struct {
@@ -32,23 +32,6 @@ type Destination struct { // Indicies into the macromap
 	Y int
 }
 
-type Tile struct {
-	Walkable   bool                      // If this cell is a wall or not
-	RegionIds  []int                     // The region ID's this tile is in
-	Dists      map[Destination]float64   // Used internally for dijkstra
-	Directions map[Destination]Direction // Direction to destination
-	X          int                       // X co-ordinate
-	Y          int                       // Y co-ordinate
-}
-
-type MacroMap struct {
-	Width      int
-	Height     int
-	TileWidth  float64  // Width of a tile
-	tiles      [][]Tile // The tiles.
-	background image.Image
-}
-
 func Init() {
 
 	initDeltas()
@@ -60,14 +43,26 @@ func (d Direction) String() string {
 	if d == DirectionN {
 		return "↑"
 	}
+	if d == DirectionNE {
+		return "↗"
+	}
 	if d == DirectionE {
 		return "→"
+	}
+	if d == DirectionSE {
+		return "↘"
 	}
 	if d == DirectionS {
 		return "↓"
 	}
+	if d == DirectionSW {
+		return "↙"
+	}
 	if d == DirectionW {
 		return "←"
+	}
+	if d == DirectionNW {
+		return "↖"
 	}
 	if d == DirectionUnknown {
 		return "?"
@@ -82,70 +77,20 @@ func (d Direction) String() string {
 	return "!"
 }
 
-// func Run() {
+func (w *world.State) PrintDirections(destination Destination) {
 
-// 	mm := LoadFromImage("test_world.png")
+	for i := 0; i < w.GetHeight(); i++ {
+		for j := 0; j < w.GetWidth(); j++ {
 
-// 	mm.generateFlowField(Destination{38, 0})
+			tile := w.GetTile(j, i)
 
-// }
-
-// func LoadFromImage(path string) MacroMap {
-
-// 	reader, err := os.Open(path)
-// 	if err != nil {
-// 		log.Fatal(err)
-// 	}
-// 	defer reader.Close()
-// 	i, _, err := image.Decode(reader)
-// 	if err != nil {
-// 		log.Fatal(err)
-// 	}
-// 	width := i.Bounds().Dx()
-// 	height := i.Bounds().Dy()
-// 	fmt.Println("image size:", width, height)
-// 	world := MacroMap{Width: width, Height: height, background: i, tiles: make([][]Tile, width)}
-
-// 	for x := 0; x < world.Width; x++ {
-// 		world.tiles[x] = make([]Tile, world.Height)
-// 		for y := 0; y < world.Height; y++ {
-// 			walk := walkable(i.At(x, y))
-// 			world.tiles[x][y].Walkable = walk
-// 			world.tiles[x][y].X = x
-// 			world.tiles[x][y].Y = y
-// 		}
-// 	}
-// 	fmt.Println("tiles size", len(world.tiles), len(world.tiles[0]))
-
-// 	return world
-// }
-
-func walkable(colour color.Color) bool {
-	r, g, b, a := colour.RGBA()
-	return r == 0xffff && g == 0xffff && b == 0xffff && a == 0xffff
-}
-
-func (mm *MacroMap) GetTileHighRes(x, y float64) (*Tile, error) {
-
-	return mm.GetTile(int(math.Floor(x/mm.TileWidth)), int(math.Floor(y/mm.TileWidth)))
-
-}
-
-func (mm *MacroMap) GetTile(x, y int) (*Tile, error) {
-	if x < 0 || x >= mm.Width || y < 0 || y >= mm.Height {
-		return nil, fmt.Errorf("Invalid co-ordinates (%d, %d)", x, y)
-	}
-	return &mm.tiles[x][y], nil
-}
-
-func (mm *MacroMap) Print(destination Destination) {
-
-	for i := 0; i < mm.Height; i++ {
-		for j := 0; j < mm.Width; j++ {
-
-			tile, _ := mm.GetTile(j, i)
-			// fmt.Print(tile.Directions[destination])
-			fmt.Printf("%04.f ", tile.Dists[destination])
+			if tile.Dists[destination] == 0 {
+				fmt.Printf("X")
+			} else if !tile.Walkable() {
+				fmt.Print("#")
+			} else {
+				fmt.Print(tile.Directions[destination])
+			}
 
 		}
 		fmt.Println()
@@ -156,24 +101,10 @@ func (mm *MacroMap) Print(destination Destination) {
 }
 
 // Generates the flow field to the destination
-func (mm *MacroMap) generateFlowField(destination Destination) error {
+func (w *world.State) GenerateFlowField(destination Destination) error {
 
-	for y := 0; y < mm.Height; y++ {
-		for x := 0; x < mm.Width; x++ {
-			tile, _ := mm.GetTile(x, y)
-			if tile.Walkable {
-				fmt.Print(" ")
-			} else {
-				fmt.Print("#")
-			}
-		}
-		fmt.Println()
-	}
-	fmt.Println()
-
-	FindShortestPath(mm, destination)
-
-	mm.Print(destination)
+	FindShortestPath(w, destination)
+	w.computeDirections(destination)
 
 	return nil
 
@@ -181,22 +112,136 @@ func (mm *MacroMap) generateFlowField(destination Destination) error {
 
 // Assuming that distance information has been filled in by dijkstra,
 // calculate the directions needed
-// func (*mm MacroMap) computeDirections(dest Destination) error {
+func (w *world.State) computeDirections(dest Destination) error {
 
-// 	// If a wall is in a square's border, don't consider diagonals
+	for i := 0; i < w.GetWidth(); i++ {
+		for j := 0; j < w.GetHeight(); j++ {
 
-// 	for int i = 0; i < mm.Width; ++i {
-// 		for int j = 0; j < mm.Height; ++j {
+			// Disallowed delta movements
+			disallowed := make([]pairInts, 0)
 
-// 			tile, err := mm.GetTile(i, j)
-// 			if err != nil {
-// 				log.Println(err)
-// 				exit(1)
-// 			}
+			tile := w.GetTile(i, j)
 
-// 		}
-// 	}
+			// Check for wall in border
+			hasWallInBorder := false
+			for dX := -1; dX <= 1; dX++ {
+				for dY := -1; dY <= 1; dY++ {
 
-// }
+					// Skip looking at myself
+					if dX == 0 && dY == 0 {
+						continue
+					}
 
-// If there is a wall in the border, don't consider diagonals
+					newX := i + dX
+					newY := j + dY
+
+					if newX >= 0 && newX < w.GetWidth() &&
+						newY >= 0 && newY < w.GetHeight() {
+
+						newTile := w.GetTile(newX, newY)
+						if !newTile.Walkable() {
+							hasWallInBorder = true
+
+							if dX == -1 && dY == 0 {
+								disallowed = append(disallowed, pairInts{-1, 1})
+								disallowed = append(disallowed, pairInts{-1, -1})
+							}
+							if dX == 0 && dY == 1 {
+								disallowed = append(disallowed, pairInts{-1, 1})
+								disallowed = append(disallowed, pairInts{1, 1})
+							}
+							if dX == 0 && dY == -1 {
+								disallowed = append(disallowed, pairInts{-1, -1})
+								disallowed = append(disallowed, pairInts{1, -1})
+							}
+							if dX == 1 && dY == 0 {
+								disallowed = append(disallowed, pairInts{1, 1})
+								disallowed = append(disallowed, pairInts{1, -1})
+							}
+
+						}
+
+					}
+
+				}
+			}
+
+			// Compute the bestDX and bestDY to move in
+			shortestDistance := math.Inf(1)
+			bestDX := -1
+			bestDY := -1
+			for dX := -1; dX <= 1; dX++ {
+				for dY := -1; dY <= 1; dY++ {
+
+					// Skip looking at myself
+					if dX == 0 && dY == 0 {
+						continue
+					}
+
+					// Check for disallowed deltas
+					if hasWallInBorder {
+						allow := true
+						for _, disallowedPairInts := range disallowed {
+							if dX == disallowedPairInts.fst && dY == disallowedPairInts.snd {
+								allow = false
+							}
+						}
+						if !allow {
+							continue
+						}
+					}
+
+					newX := i + dX
+					newY := j + dY
+
+					if newX >= 0 && newX < w.GetWidth() &&
+						newY >= 0 && newY < w.GetHeight() {
+
+						newTile := w.GetTile(newX, newY)
+						if newTile.Walkable() && newTile.Dists[dest] < shortestDistance {
+							shortestDistance = newTile.Dists[dest]
+							bestDX = dX
+							bestDY = dY
+						}
+
+					}
+
+				}
+			}
+
+			// Translate this to a direction
+			if tile.Directions == nil {
+				tile.Directions = make(map[Destination]Direction)
+			}
+			tile.Directions[dest] = deltaToDirection(bestDX, bestDY)
+
+		}
+	}
+
+	return nil
+
+}
+
+func deltaToDirection(dX, dY int) Direction {
+
+	if dX == -1 && dY == -1 {
+		return DirectionNW
+	} else if dX == 0 && dY == -1 {
+		return DirectionN
+	} else if dX == 1 && dY == -1 {
+		return DirectionNE
+	} else if dX == -1 && dY == 0 {
+		return DirectionW
+	} else if dX == 1 && dY == 0 {
+		return DirectionE
+	} else if dX == -1 && dY == 1 {
+		return DirectionSW
+	} else if dX == 0 && dY == 1 {
+		return DirectionS
+	} else if dX == 1 && dY == 1 {
+		return DirectionSE
+	} else {
+		return DirectionUnknown
+	}
+
+}

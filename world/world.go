@@ -14,9 +14,11 @@ import (
 )
 
 type Tile struct {
-	walkable bool
-	People   []*individual.Individual
-	HitCount int
+	walkable   bool
+	People     []*individual.Individual
+	HitCount   int
+	Dists      map[Destination]float64 // Used internally for dijkstra
+	Directions map[Destination]Direction
 }
 
 func (t *Tile) Walkable() bool {
@@ -35,6 +37,7 @@ type State struct {
 	height     int
 	background image.Image
 	Regions    []Region
+	TileWidth  int // TODO: do we need this?
 	allPeople  []*individual.Individual
 }
 
@@ -55,6 +58,13 @@ func (w *State) GetTile(x, y int) *Tile {
 		return nil
 	}
 	return &(w.tiles[x][y])
+}
+
+func (w *State) GetTileHighRes(x, y float64) (*Tile, error) {
+
+	// TODO: Ed said we can just floor this?
+	return w.GetTile(int(math.Floor(x/w.TileWidth)), int(math.Floor(y/w.TileWidth)))
+
 }
 
 var counter int = 0
