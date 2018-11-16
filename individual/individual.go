@@ -1,17 +1,20 @@
 package individual
 
 import (
-	"github.com/real-time-footfall-analysis/rtfa-simulation/geometry"
 	"image/color"
+	"math"
 	"math/rand"
+
+	"github.com/real-time-footfall-analysis/rtfa-simulation/geometry"
+	"github.com/real-time-footfall-analysis/rtfa-simulation/utils"
 
 	"github.com/real-time-footfall-analysis/rtfa-simulation/directions"
 )
 
 type Likelihood struct {
 	Destination          directions.Destination // If this likelihood is picked - where should we go
-	probabilityFunctions []func(int) bool       // Array of mutually exclusive functions to return "true" when we should use the corresponding probability
-	probabilities        []float64              // Array of probabilities. MUST be same cardinality as the above.
+	ProbabilityFunctions []func(int) bool       // Array of mutually exclusive functions to return "true" when we should use the corresponding probability
+	Probabilities        []float64              // Array of probabilities. MUST be same cardinality as the above.
 }
 
 type Individual struct {
@@ -25,9 +28,9 @@ type Individual struct {
 }
 
 func (l *Likelihood) ProbabilityAtTick(tick int) float64 {
-	for i, useProb := range l.probabilityFunctions {
+	for i, useProb := range l.ProbabilityFunctions {
 		if useProb(tick) {
-			return l.probabilities[i]
+			return l.Probabilities[i]
 		}
 	}
 	return 0
@@ -75,10 +78,38 @@ func (a *Individual) requestedDestination() directions.Destination {
 	return probs[0].dest
 }
 
-func (i *Individual) DirectionForDestination(dest directions.Destination, macroMap *directions.MacroMap) directions.Direction {
+func (i *Individual) DirectionForDestination(dest directions.Destination, macroMap *directions.MacroMap) utils.OptionalFloat64 {
 	tile, err := macroMap.GetTileHighRes(i.Loc.GetXY())
 	if err != nil {
-		return directions.DirectionUnknown
+		return utils.OptionalFloat64WithEmptyValue()
 	}
-	return tile.Directions[dest]
+
+	// Pick a random "sway" so they dont walk just in ordinal directions - more realistic
+
+	// TODO: Look for people in their ordinal direction and follow them
+
+	sway := (rand.Float64() * math.Pi / 4) - math.Pi/2
+	theta := 0.0
+
+	switch tile.Directions[dest] {
+	case directions.DirectionN:
+		theta = -math.Pi / 2
+	case directions.DirectionNE:
+		theta = -math.Pi / 4
+	case directions.DirectionE:
+		theta = 0
+	case directions.DirectionSE:
+		theta = math.Pi / 4
+	case directions.DirectionS:
+		theta = math.Pi / 2
+	case directions.DirectionSW:
+		theta = 3 * math.Pi / 4
+	case directions.DirectionW:
+		theta = math.Pi
+	case directions.DirectionNW:
+		theta = -3 * math.Pi / 4
+	default:
+		return utils.OptionalFloat64WithEmptyValue()
+	}
+	return utils.OptionalFloat64WithValue(theta + sway)
 }

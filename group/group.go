@@ -3,6 +3,7 @@ package group
 import (
 	"github.com/real-time-footfall-analysis/rtfa-simulation/directions"
 	"github.com/real-time-footfall-analysis/rtfa-simulation/individual"
+	"github.com/real-time-footfall-analysis/rtfa-simulation/utils"
 )
 
 type Group struct {
@@ -10,7 +11,7 @@ type Group struct {
 	macroMap    *directions.MacroMap
 }
 
-func (g *Group) Next(channel chan map[*individual.Individual]directions.Direction) {
+func (g *Group) Next(channel chan map[*individual.Individual]utils.OptionalFloat64) {
 
 	dests := make(map[directions.Destination]int, 0)
 	bestVal := 0
@@ -43,7 +44,7 @@ func (g *Group) Next(channel chan map[*individual.Individual]directions.Directio
 
 	// Tell each person in the group where they need to go, and they will tell you which direction they need to go in
 
-	directions := make(map[*individual.Individual]directions.Direction, 0)
+	directions := make(map[*individual.Individual]utils.OptionalFloat64, 0)
 	for _, individual := range g.individuals {
 		directions[individual] = individual.DirectionForDestination(chosenDest, g.macroMap)
 	}

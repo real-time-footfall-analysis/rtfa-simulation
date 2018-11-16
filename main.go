@@ -4,11 +4,11 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/real-time-footfall-analysis/rtfa-simulation/directions"
 	"github.com/real-time-footfall-analysis/rtfa-simulation/geometry"
 	"github.com/real-time-footfall-analysis/rtfa-simulation/group"
 	"github.com/real-time-footfall-analysis/rtfa-simulation/individual"
 	"github.com/real-time-footfall-analysis/rtfa-simulation/render"
+	"github.com/real-time-footfall-analysis/rtfa-simulation/utils"
 	"github.com/real-time-footfall-analysis/rtfa-simulation/world"
 	"golang.org/x/exp/shiny/driver"
 	"golang.org/x/exp/shiny/screen"
@@ -53,19 +53,44 @@ func simulate(world *world.State, r *render.RenderState) {
 		people := 0
 		steps := 0
 
-		for i := 0; i < 60000; i++ {
+		// Add random people
+		for i := 0; i < 6; i++ {
 			world.AddRandom()
 			people++
 
 		}
+
+		// Add them to groups
+		// TODO:
+		groups := make([]*group.Group, 0)
+
+		// Set up parallel processing channels
+		channels := make([]chan map[*individual.Individual]utils.OptionalFloat64, 0)
+		for i := 0; i < len(groups); i++ {
+			channel := make(chan map[*individual.Individual]utils.OptionalFloat64)
+			channels = append(channels, channel)
+		}
+
 		var avg float64 = -1
 		for t := range ticker.C {
 
 			//fmt.Println(steps, "Tick at", t)
 
-			world.MoveAll()
+			// world.MoveAll()
 
-			if steps%50 == 0 {
+			// Get the desired positions for each of the individuals in each group in parallel
+			for i, group := range groups {
+				go group.Next(channels[i])
+			}
+
+			// Process each group as they come
+			for _, channel := range channels {
+				// Process them as they come in
+				result := <-channel
+				processMovementsForGroup(world, result)
+			}
+
+			if steps%1 == 0 {
 				r.SendEvent(render.UpdateEvent{world})
 			}
 			//fmt.Println("people: ", people)
@@ -89,26 +114,15 @@ func simulate(world *world.State, r *render.RenderState) {
 	fmt.Println("Ticker stopped")
 }
 
-func processTick(groups []*group.Group) {
+func processMovementsForGroup(world *world.State, movements map[*individual.Individual]utils.OptionalFloat64) {
+	for individual, direction := range movements {
+		theta, ok := direction.Value()
+		if !ok {
+			// If we aren't meant to move... don't
+			world.MoveIndividual(individual, 0, 0)
+			continue
+		}
 
-	channels := make([]chan map[*individual.Individual]directions.Direction, 0)
-	for i := 0; i < len(groups); i++ {
-		channel := make(chan map[*individual.Individual]directions.Direction)
-		channels = append(channels, channel)
+		world.MoveIndividual(individual, theta, individual.StepSize)
 	}
-
-	// Get the desired positions for each of the individuals in each group in parallel
-	for i, group := range groups {
-		go group.Next(channels[i])
-	}
-
-	for _, channel := range channels {
-		// Process them as they come in
-		result := <-channel
-		movePeopleIfPossible(result)
-	}
-}
-
-func movePeopleIfPossible(map[*individual.Individual]directions.Direction) {
-	// TODO:
 }
