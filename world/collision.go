@@ -11,7 +11,7 @@ const (
 	OneMinusTwiceRadius      = 1 - TwicePersonRadius
 )
 
-func (s *State) movementintersects(x, y float64, theta float64, distance float64) (bool, float64, float64) {
+func (s *State) movementIntersects(x, y float64, theta float64, distance float64) (bool, float64, float64) {
 	tx, ty := int(x), int(y)
 	nx := x + distance*math.Cos(theta)
 	ny := y + distance*math.Sin(theta)
@@ -111,6 +111,54 @@ func (s *State) movementintersects(x, y float64, theta float64, distance float64
 
 func intersect(ax, ay, bx, by float64) bool {
 	return math.Pow(ax-bx, 2)+math.Pow(ay-by, 2) < TwicePersonRadiusSquared
+}
+
+func (s *State) IntersectsAnyone(x, y float64) bool {
+	tx := int(x)
+	ty := int(y)
+	smallnx := x - math.Floor(x)
+	smallny := y - math.Floor(y)
+	var sx int
+	var fx int
+	if smallnx < TwicePersonRadius {
+		sx = -1
+	} else {
+		sx = 0
+	}
+	if smallnx > OneMinusTwiceRadius {
+		fx = 2
+	} else {
+		fx = 1
+	}
+
+	var sy int
+	var fy int
+	if smallny < TwicePersonRadius {
+		sy = -1
+	} else {
+		sy = 0
+	}
+	if smallny > OneMinusTwiceRadius {
+		fy = 2
+	} else {
+		fy = 1
+	}
+
+	// for all people in this and adjacent tiles
+	for ix := sx; ix < fx; ix++ {
+		for iy := sy; iy < fy; iy++ {
+			tile := s.GetTile(tx+ix, ty+iy)
+			if tile != nil {
+				for i, _ := range tile.People {
+					ax, ay := tile.People[i].Loc.GetLatestXY()
+					if !(ax == x && ay == y) && intersect(x, y, ax, ay) {
+						return true
+					}
+				}
+			}
+		}
+	}
+	return false
 }
 
 func closestPointOnLine(x, y, nx, ny, ax, ay float64) (float64, float64) {

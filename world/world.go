@@ -58,23 +58,28 @@ func (w *State) GetTile(x, y int) *Tile {
 var counter int = 0
 
 func (w *State) AddRandom() {
-	x := rand.Intn(w.GetWidth()-2) + 1
-	y := rand.Intn(w.GetHeight()-2) + 1
-	xf := rand.Float64()
-	yf := rand.Float64()
-	tile := w.GetTile(x, y)
-	r, g, b := color.YCbCrToRGB(uint8(100), uint8(rand.Intn(256)), uint8(rand.Intn(256)))
-	c := color.RGBA{r, g, b, 255}
-	person := individual.Individual{Loc: geometry.NewPoint(float64(x)+xf, float64(y)+yf), Colour: c, UUID: "SimBot-" + strconv.Itoa(counter)}
-	tile.People = append(tile.People, &person)
-	counter++
-	w.allPeople = append(w.allPeople, &person)
+	for {
+		x := rand.Intn(w.GetWidth()-2) + 1
+		y := rand.Intn(w.GetHeight()-2) + 1
+		xf := rand.Float64()
+		yf := rand.Float64()
+		tile := w.GetTile(x, y)
+		if tile.Walkable() && !w.IntersectsAnyone(float64(x)+xf, float64(y)+yf) {
+			r, g, b := color.YCbCrToRGB(uint8(100), uint8(rand.Intn(256)), uint8(rand.Intn(256)))
+			c := color.RGBA{r, g, b, 255}
+			person := individual.Individual{Loc: geometry.NewPoint(float64(x)+xf, float64(y)+yf), Colour: c, UUID: "SimBot-" + strconv.Itoa(counter)}
+			tile.People = append(tile.People, &person)
+			counter++
+			w.allPeople = append(w.allPeople, &person)
+			return
+		}
+	}
 }
 
 func (w *State) MoveIndividual(person *individual.Individual, theta float64, distance float64) {
 	cx, cy := person.Loc.GetXY()
 	tile := w.GetTile(int(cx), int(cy))
-	_, nx, ny := w.movementintersects(cx, cy, theta, distance)
+	_, nx, ny := w.movementIntersects(cx, cy, theta, distance)
 
 	if nx >= 0 && int(nx) < w.GetWidth() &&
 		ny >= 0 && int(ny) < w.GetHeight() {
