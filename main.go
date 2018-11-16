@@ -48,25 +48,40 @@ func main() {
 
 func simulate(world *world.State, r *render.RenderState) {
 	//time.Sleep(5 * time.Second)
-	ticker := time.NewTicker(100 * time.Millisecond)
+	ticker := time.NewTicker(10 * time.Millisecond)
 	go func() {
 		people := 0
 		steps := 0
 
-		for i := 0; i < 6; i++ {
+		for i := 0; i < 60000; i++ {
 			world.AddRandom()
 			people++
 
 		}
+		var avg float64 = -1
 		for t := range ticker.C {
-			fmt.Println(steps, "Tick at", t)
+
+			//fmt.Println(steps, "Tick at", t)
 
 			world.MoveAll()
 
-			r.SendEvent(render.UpdateEvent{world})
+			if steps%50 == 0 {
+				r.SendEvent(render.UpdateEvent{world})
+			}
 			//fmt.Println("people: ", people)
 			steps++
 			geometry.FlipTick()
+			dt := time.Since(t).Nanoseconds()
+			if avg < 0 {
+				avg = float64(dt)
+			} else {
+				avg = 0.9*avg + 0.1*float64(dt)
+			}
+
+			if steps%50 == 0 {
+				fmt.Println("average tick time: ", avg/1000000000)
+			}
+
 		}
 	}()
 	time.Sleep(600 * time.Second)

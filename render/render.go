@@ -39,7 +39,7 @@ type UpdateEvent struct {
 func SetupRender(s screen.Screen, original image.Image) RenderState {
 	r := RenderState{s: s}
 
-	r.backgroundScale = 20
+	r.backgroundScale = 10
 	window, err := s.NewWindow(nil)
 	if err != nil {
 		log.Fatal(err)

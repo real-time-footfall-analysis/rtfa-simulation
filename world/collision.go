@@ -6,7 +6,9 @@ import (
 
 const (
 	PersonRadius             = 0.2
-	TwicePersonRadiusSquared = (PersonRadius * 2) * (PersonRadius * 2)
+	TwicePersonRadius        = 2 * PersonRadius
+	TwicePersonRadiusSquared = (TwicePersonRadius) * (TwicePersonRadius)
+	OneMinusTwiceRadius      = 1 - TwicePersonRadius
 )
 
 func (s *State) movementintersects(x, y float64, theta float64, distance float64) (bool, float64, float64) {
@@ -14,27 +16,30 @@ func (s *State) movementintersects(x, y float64, theta float64, distance float64
 	nx := x + distance*math.Cos(theta)
 	ny := y + distance*math.Sin(theta)
 	collided := false
+
+	smallnx := nx - math.Floor(x)
+	smallny := ny - math.Floor(y)
 	// Possibly worry about running off the edge of the map?
-	if nx-math.Floor(x) < PersonRadius {
+	if smallnx < PersonRadius {
 		// intersect the x-- tile
 		if !s.GetTile(tx-1, ty).Walkable() {
 			nx = math.Floor(x) + PersonRadius
 			collided = true
 		}
-	} else if nx-math.Floor(x) > 1-PersonRadius {
+	} else if smallnx > 1-PersonRadius {
 		// intersect the x++ tile
 		if !s.GetTile(tx+1, ty).Walkable() {
 			nx = math.Floor(x) + 1 - PersonRadius
 			collided = true
 		}
 	}
-	if ny-math.Floor(y) < PersonRadius {
+	if smallny < PersonRadius {
 		// intersect the y-- tile
 		if !s.GetTile(tx, ty-1).Walkable() {
 			ny = math.Floor(y) + PersonRadius
 			collided = true
 		}
-	} else if ny-math.Floor(y) > 1-PersonRadius {
+	} else if smallny > 1-PersonRadius {
 		// intersect the y++ tile
 		if !s.GetTile(tx, ty+1).Walkable() {
 			ny = math.Floor(y) + 1 - PersonRadius
@@ -44,12 +49,40 @@ func (s *State) movementintersects(x, y float64, theta float64, distance float64
 
 	if collided {
 		distance = math.Sqrt(math.Pow(x-nx, 2) + math.Pow(y-ny, 2))
-		theta = math.Atan2(nx-x, ny-y)
+		theta = math.Atan2(ny-y, nx-x)
+		smallnx = nx - math.Floor(x)
+		smallny = ny - math.Floor(y)
+	}
+
+	var sx int
+	var fx int
+	if smallnx < TwicePersonRadius {
+		sx = -1
+	} else {
+		sx = 0
+	}
+	if smallnx > OneMinusTwiceRadius {
+		fx = 2
+	} else {
+		fx = 1
+	}
+
+	var sy int
+	var fy int
+	if smallny < TwicePersonRadius {
+		sy = -1
+	} else {
+		sy = 0
+	}
+	if smallny > OneMinusTwiceRadius {
+		fy = 2
+	} else {
+		fy = 1
 	}
 
 	// for all people in this and adjacent tiles
-	for ix := -1; ix < 2; ix++ {
-		for iy := -1; iy < 2; iy++ {
+	for ix := sx; ix < fx; ix++ {
+		for iy := sy; iy < fy; iy++ {
 			tile := s.GetTile(tx+ix, ty+iy)
 			if tile != nil {
 				for i, _ := range tile.People {

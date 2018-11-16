@@ -1,7 +1,6 @@
 package world
 
 import (
-	"fmt"
 	"github.com/real-time-footfall-analysis/rtfa-simulation/geometry"
 	"github.com/real-time-footfall-analysis/rtfa-simulation/individual"
 	"image"
@@ -51,7 +50,6 @@ func (w *State) GetImage() image.Image {
 
 func (w *State) GetTile(x, y int) *Tile {
 	if x < 0 || x >= w.width || y < 0 || y >= w.height {
-		fmt.Println("out of range: %i %i", x, y)
 		return nil
 	}
 	return &(w.tiles[x][y])
@@ -74,11 +72,8 @@ func (w *State) AddRandom() {
 }
 
 func (w *State) MoveIndividual(person *individual.Individual, theta float64, distance float64) {
-
-	x, y := person.Loc.GetXY()
-	tile := w.GetTile(int(x), int(y))
-
 	cx, cy := person.Loc.GetXY()
+	tile := w.GetTile(int(cx), int(cy))
 	_, nx, ny := w.movementintersects(cx, cy, theta, distance)
 
 	if nx >= 0 && int(nx) < w.GetWidth() &&
@@ -103,7 +98,10 @@ func (w *State) MoveIndividual(person *individual.Individual, theta float64, dis
 			newTile.People = append(newTile.People, person)
 		}
 	} else {
-		log.Fatal("cannot leave bounry like this")
+
+		// person is trying to leave! though
+		log.Fatal("cannot leave bounry like this; ", cx, cy, nx, ny, theta/math.Pi, distance)
+
 	}
 }
 
@@ -111,7 +109,7 @@ func (w *State) MoveAll() {
 
 	for _, p := range w.allPeople {
 		theta := (rand.Float64() * 2 * math.Pi) * 0.9
-		distance := math.Sqrt(rand.Float64()) / 8
+		distance := math.Sqrt(rand.Float64()) / 3
 
 		w.MoveIndividual(p, theta, distance)
 
