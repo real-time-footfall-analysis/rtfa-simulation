@@ -1,4 +1,4 @@
-package individual
+package main
 
 import (
 	"image/color"
@@ -7,14 +7,12 @@ import (
 
 	"github.com/real-time-footfall-analysis/rtfa-simulation/geometry"
 	"github.com/real-time-footfall-analysis/rtfa-simulation/utils"
-
-	"github.com/real-time-footfall-analysis/rtfa-simulation/directions"
 )
 
 type Likelihood struct {
-	Destination          directions.Destination // If this likelihood is picked - where should we go
-	ProbabilityFunctions []func(int) bool       // Array of mutually exclusive functions to return "true" when we should use the corresponding probability
-	Probabilities        []float64              // Array of probabilities. MUST be same cardinality as the above.
+	Destination          Destination      // If this likelihood is picked - where should we go
+	ProbabilityFunctions []func(int) bool // Array of mutually exclusive functions to return "true" when we should use the corresponding probability
+	Probabilities        []float64        // Array of probabilities. MUST be same cardinality as the above.
 }
 
 type Individual struct {
@@ -36,17 +34,17 @@ func (l *Likelihood) ProbabilityAtTick(tick int) float64 {
 	return 0
 }
 
-func (i *Individual) Next() directions.Destination {
+func (i *Individual) Next() Destination {
 	i.Tick += 1
 	return i.requestedDestination()
 }
 
 type ProbabilityPair struct {
 	prob float64
-	dest directions.Destination
+	dest Destination
 }
 
-func (a *Individual) requestedDestination() directions.Destination {
+func (a *Individual) requestedDestination() Destination {
 	// Get all of the likelihood probabilities
 	var sum float64 = 0
 	probs := make([]ProbabilityPair, 0)
@@ -78,9 +76,9 @@ func (a *Individual) requestedDestination() directions.Destination {
 	return probs[0].dest
 }
 
-func (i *Individual) DirectionForDestination(dest directions.Destination, macroMap *directions.MacroMap) utils.OptionalFloat64 {
-	tile, err := macroMap.GetTileHighRes(i.Loc.GetXY())
-	if err != nil {
+func (i *Individual) DirectionForDestination(dest Destination, w *State) utils.OptionalFloat64 {
+	tile := w.GetTileHighRes(i.Loc.GetXY())
+	if tile != nil {
 		return utils.OptionalFloat64WithEmptyValue()
 	}
 
@@ -92,21 +90,21 @@ func (i *Individual) DirectionForDestination(dest directions.Destination, macroM
 	theta := 0.0
 
 	switch tile.Directions[dest] {
-	case directions.DirectionN:
+	case DirectionN:
 		theta = -math.Pi / 2
-	case directions.DirectionNE:
+	case DirectionNE:
 		theta = -math.Pi / 4
-	case directions.DirectionE:
+	case DirectionE:
 		theta = 0
-	case directions.DirectionSE:
+	case DirectionSE:
 		theta = math.Pi / 4
-	case directions.DirectionS:
+	case DirectionS:
 		theta = math.Pi / 2
-	case directions.DirectionSW:
+	case DirectionSW:
 		theta = 3 * math.Pi / 4
-	case directions.DirectionW:
+	case DirectionW:
 		theta = math.Pi
-	case directions.DirectionNW:
+	case DirectionNW:
 		theta = -3 * math.Pi / 4
 	default:
 		return utils.OptionalFloat64WithEmptyValue()

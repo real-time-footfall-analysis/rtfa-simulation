@@ -1,9 +1,8 @@
-package world
+package main
 
 import (
 	"bytes"
 	"encoding/json"
-	"github.com/real-time-footfall-analysis/rtfa-simulation/individual"
 	"golang.org/x/exp/errors/fmt"
 	"io/ioutil"
 	"log"
@@ -81,28 +80,28 @@ func latLngToCoords(lat, lng, latOrigin, lngOrigin float64) (float64, float64) {
 	return x, y
 }
 
-func UpdateServer(regions *[]Region, actor *individual.Individual, time time.Time) {
+func UpdateServer(regions *[]Region, individual *Individual, time time.Time) {
 	for i, r := range *regions {
 		fmt.Println(i, " - ", r)
-		x, y := actor.Loc.GetLatestXY()
+		x, y := individual.Loc.GetLatestXY()
 		dx := x - r.X
 		dy := y - r.Y
 		distanceSquared := math.Pow(dx, 2) + math.Pow(dy, 2)
 		if r.sqRad > distanceSquared {
-			// this actor is in this region
-			_, knownInside := actor.RegionIds[r.ID]
+			// this individual is in this region
+			_, knownInside := individual.RegionIds[r.ID]
 			if !knownInside {
 				// we must send update to backend
-				u := update{EventID: r.EventID, RegionID: r.ID, UUID: actor.UUID, Entering: true, OccurredAt: time.Unix()}
+				u := update{EventID: r.EventID, RegionID: r.ID, UUID: individual.UUID, Entering: true, OccurredAt: time.Unix()}
 				fmt.Println(u)
 				sendUpdate(&u)
 			}
 		} else {
-			// this actor is not in this region
-			_, knownInside := actor.RegionIds[r.ID]
+			// this individual is not in this region
+			_, knownInside := individual.RegionIds[r.ID]
 			if knownInside {
-				// we must send update to backend to say this actor is no longer in the region.
-				u := update{EventID: r.EventID, RegionID: r.ID, UUID: actor.UUID, Entering: false, OccurredAt: time.Unix()}
+				// we must send update to backend to say this individual is no longer in the region.
+				u := update{EventID: r.EventID, RegionID: r.ID, UUID: individual.UUID, Entering: false, OccurredAt: time.Unix()}
 				fmt.Println(u)
 				sendUpdate(&u)
 			}

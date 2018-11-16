@@ -1,8 +1,7 @@
-package render
+package main
 
 import (
 	"fmt"
-	"github.com/real-time-footfall-analysis/rtfa-simulation/world"
 	"golang.org/x/exp/shiny/screen"
 	draw2 "golang.org/x/image/draw"
 	"golang.org/x/image/math/f64"
@@ -29,11 +28,11 @@ type RenderState struct {
 	backgroundScale int
 	i               image.Image
 	mousePressed    bool
-	world           *world.State
+	world           *State
 }
 
 type UpdateEvent struct {
-	World *world.State
+	World *State
 }
 
 func SetupRender(s screen.Screen, original image.Image) RenderState {

@@ -1,4 +1,4 @@
-package world
+package main
 
 import (
 	"fmt"
@@ -30,6 +30,8 @@ func LoadFromImage(path string) State {
 		for y := 0; y < world.height; y++ {
 			walk := walkable(i.At(x, y))
 			world.tiles[x][y].walkable = walk
+			world.tiles[x][y].X = x
+			world.tiles[x][y].Y = y
 		}
 	}
 	fmt.Println("tiles size", len(world.tiles), len(world.tiles[0]))

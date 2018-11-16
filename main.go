@@ -5,17 +5,13 @@ import (
 	"time"
 
 	"github.com/real-time-footfall-analysis/rtfa-simulation/geometry"
-	"github.com/real-time-footfall-analysis/rtfa-simulation/group"
-	"github.com/real-time-footfall-analysis/rtfa-simulation/individual"
-	"github.com/real-time-footfall-analysis/rtfa-simulation/render"
 	"github.com/real-time-footfall-analysis/rtfa-simulation/utils"
-	"github.com/real-time-footfall-analysis/rtfa-simulation/world"
 	"golang.org/x/exp/shiny/driver"
 	"golang.org/x/exp/shiny/screen"
 )
 
 func main() {
-	w := world.LoadFromImage("test5.png")
+	w := LoadFromImage("test5.png")
 	w.LoadRegions("testRegions.json", 53.867225, -1.380985)
 	fmt.Println("state size:", w.GetWidth(), w.GetHeight())
 	for y := 0; y < w.GetHeight(); y++ {
@@ -31,7 +27,7 @@ func main() {
 	fmt.Println()
 
 	driver.Main(func(s screen.Screen) {
-		r := render.SetupRender(s, w.GetImage())
+		r := SetupRender(s, w.GetImage())
 		defer r.Release()
 
 		go simulate(&w, &r)
@@ -46,7 +42,7 @@ func main() {
 
 }
 
-func simulate(world *world.State, r *render.RenderState) {
+func simulate(world *State, r *RenderState) {
 	//time.Sleep(5 * time.Second)
 	ticker := time.NewTicker(10 * time.Millisecond)
 	go func() {
@@ -62,12 +58,12 @@ func simulate(world *world.State, r *render.RenderState) {
 
 		// Add them to groups
 		// TODO:
-		groups := make([]*group.Group, 0)
+		groups := make([]*Group, 0)
 
 		// Set up parallel processing channels
-		channels := make([]chan map[*individual.Individual]utils.OptionalFloat64, 0)
+		channels := make([]chan map[*Individual]utils.OptionalFloat64, 0)
 		for i := 0; i < len(groups); i++ {
-			channel := make(chan map[*individual.Individual]utils.OptionalFloat64)
+			channel := make(chan map[*Individual]utils.OptionalFloat64)
 			channels = append(channels, channel)
 		}
 
@@ -80,7 +76,7 @@ func simulate(world *world.State, r *render.RenderState) {
 
 			// Get the desired positions for each of the individuals in each group in parallel
 			for i, group := range groups {
-				go group.Next(channels[i])
+				go group.Next(channels[i], world)
 			}
 
 			// Process each group as they come
@@ -91,7 +87,7 @@ func simulate(world *world.State, r *render.RenderState) {
 			}
 
 			if steps%1 == 0 {
-				r.SendEvent(render.UpdateEvent{world})
+				r.SendEvent(UpdateEvent{world})
 			}
 			//fmt.Println("people: ", people)
 			steps++
@@ -114,7 +110,7 @@ func simulate(world *world.State, r *render.RenderState) {
 	fmt.Println("Ticker stopped")
 }
 
-func processMovementsForGroup(world *world.State, movements map[*individual.Individual]utils.OptionalFloat64) {
+func processMovementsForGroup(world *State, movements map[*Individual]utils.OptionalFloat64) {
 	for individual, direction := range movements {
 		theta, ok := direction.Value()
 		if !ok {

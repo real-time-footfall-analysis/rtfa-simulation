@@ -1,11 +1,9 @@
-package directions
+package main
 
 import (
 	"errors"
 	"log"
 	"math"
-
-	"github.com/real-time-footfall-analysis/rtfa-simulation/world"
 
 	"github.com/jupp0r/go-priority-queue"
 )
@@ -22,7 +20,7 @@ func initDeltas() {
 
 }
 
-func FindShortestPath(w *world.State, destination Destination) error {
+func FindShortestPath(w *State, destination Destination) error {
 
 	// Queue to hold fringe verticies
 	queue, _ := initQueue(w, destination)
@@ -32,7 +30,7 @@ func FindShortestPath(w *world.State, destination Destination) error {
 
 		// Get the closest fringe vertex
 		item, err := queue.Pop()
-		tile, ok := item.(*world.Tile)
+		tile, ok := item.(*Tile)
 		if !ok {
 			log.Panicln("Failed to parse queue item into tile")
 			return errors.New("Failed to parse queue item into tile")
@@ -59,7 +57,7 @@ func FindShortestPath(w *world.State, destination Destination) error {
 
 // Initialises queue, adding all nodes and setting distance to infinity
 // Nodes which we can reach
-func initQueue(w *world.State, dest Destination) (*pq.PriorityQueue, error) {
+func initQueue(w *State, dest Destination) (*pq.PriorityQueue, error) {
 
 	// Initialise the queue
 	queue := pq.New()
@@ -75,12 +73,12 @@ func initQueue(w *world.State, dest Destination) (*pq.PriorityQueue, error) {
 			}
 
 			// Set the direction for un-walkable tiles to be none
-			if !tile.Walkable {
+			if !tile.Walkable() {
 				tile.Dists[dest] = math.Inf(1)
 			}
 
 			// Skip the destination and tiles we can't walk on
-			if !tile.Walkable || (i == dest.X && j == dest.Y) {
+			if !tile.Walkable() || (i == dest.X && j == dest.Y) {
 				continue
 			}
 
@@ -100,9 +98,9 @@ func initQueue(w *world.State, dest Destination) (*pq.PriorityQueue, error) {
 
 }
 
-func getValidNeighbouringTiles(x, y int, w *world.State) []*world.Tile {
+func getValidNeighbouringTiles(x, y int, w *State) []*Tile {
 
-	tiles := make([]*world.Tile, 0)
+	tiles := make([]*Tile, 0)
 
 	for _, delta := range deltas {
 

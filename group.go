@@ -1,19 +1,16 @@
-package group
+package main
 
 import (
-	"github.com/real-time-footfall-analysis/rtfa-simulation/directions"
-	"github.com/real-time-footfall-analysis/rtfa-simulation/individual"
 	"github.com/real-time-footfall-analysis/rtfa-simulation/utils"
 )
 
 type Group struct {
-	individuals []*individual.Individual
-	macroMap    *directions.MacroMap
+	individuals []*Individual
 }
 
-func (g *Group) Next(channel chan map[*individual.Individual]utils.OptionalFloat64) {
+func (g *Group) Next(channel chan map[*Individual]utils.OptionalFloat64, w *State) {
 
-	dests := make(map[directions.Destination]int, 0)
+	dests := make(map[Destination]int, 0)
 	bestVal := 0
 
 	// Get each destination that someone would like to go to, and tally them up
@@ -34,7 +31,7 @@ func (g *Group) Next(channel chan map[*individual.Individual]utils.OptionalFloat
 		}
 	}
 
-	var chosenDest directions.Destination
+	var chosenDest Destination
 	// Return the destination with the highest weight
 	for dest, val := range dests {
 		if val == bestVal {
@@ -44,9 +41,9 @@ func (g *Group) Next(channel chan map[*individual.Individual]utils.OptionalFloat
 
 	// Tell each person in the group where they need to go, and they will tell you which direction they need to go in
 
-	directions := make(map[*individual.Individual]utils.OptionalFloat64, 0)
+	directions := make(map[*Individual]utils.OptionalFloat64, 0)
 	for _, individual := range g.individuals {
-		directions[individual] = individual.DirectionForDestination(chosenDest, g.macroMap)
+		directions[individual] = individual.DirectionForDestination(chosenDest, w)
 	}
 	channel <- directions
 }
