@@ -29,6 +29,7 @@ type RenderState struct {
 	backgroundScale int
 	i               image.Image
 	mousePressed    bool
+	world           *world.State
 }
 
 type UpdateEvent struct {
@@ -115,7 +116,6 @@ func (r *RenderState) Step() bool {
 	}
 	fmt.Printf(format, e)
 	*/
-
 	switch e := e.(type) {
 	case lifecycle.Event:
 		if e.To == lifecycle.StageDead {
@@ -134,6 +134,12 @@ func (r *RenderState) Step() bool {
 		if r.mousePressed {
 			px, py := r.GetPixelPos(r.GetWorldPos(e))
 			r.SetTileColour(px, py, color.Black)
+			if r.world != nil {
+				tx, ty := r.GetWorldPos(e)
+				if tx >= 0 {
+					r.world.GetTile(tx, ty).SetWalkable(false)
+				}
+			}
 			r.Redraw()
 		}
 	case size.Event:
@@ -144,13 +150,13 @@ func (r *RenderState) Step() bool {
 	case paint.Event:
 		r.Redraw()
 	case UpdateEvent:
-		//r.loadOriginal(e.World.GetImage())
 		r.resetPeopleBuffer()
-
+		r.world = e.World
 		for x := 0; x < e.World.GetWidth(); x++ {
 			for y := 0; y < e.World.GetHeight(); y++ {
 				tile := e.World.GetTile(x, y)
 				for _, p := range tile.People {
+					//fmt.Print(p)
 					x, y := p.Loc.GetLatestXY()
 					drawPersonInBuffer(r, x, y, p.Colour)
 				}
@@ -167,7 +173,7 @@ func drawPersonInBuffer(r *RenderState, x, y float64, c color.Color) {
 	ix := int(x * float64(r.backgroundScale))
 	iy := int(y * float64(r.backgroundScale))
 
-	p := 10
+	p := 3
 	pr := r.backgroundScale / p
 	if pr == 0 {
 		pr = 1
@@ -218,8 +224,16 @@ func (r *RenderState) GetPixelPos(px, py int) (int, int) {
 }
 
 func (r *RenderState) GetWorldPos(e mouse.Event) (int, int) {
-	px := int(float64(e.X)/r.windowScale) / r.backgroundScale
-	py := int(float64(e.Y)/r.windowScale) / r.backgroundScale
+	px := int(float64(e.X) / r.windowScale)
+	if px < 0 || px >= r.i.Bounds().Dx() {
+		return -1, -1
+	}
+	px /= r.backgroundScale
+	py := int(float64(e.Y) / r.windowScale)
+	if py < 0 || py >= r.i.Bounds().Dy() {
+		return -1, -1
+	}
+	py /= r.backgroundScale
 	return px, py
 }
 
