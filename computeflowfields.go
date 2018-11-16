@@ -1,11 +1,9 @@
-package directions
+package main
 
 import (
 	"fmt"
 	_ "image/png"
 	"math"
-
-	"github.com/real-time-footfall-analysis/rtfa-simulation/world"
 )
 
 type pairInts struct {
@@ -77,7 +75,7 @@ func (d Direction) String() string {
 	return "!"
 }
 
-func (w *world.State) PrintDirections(destination Destination) {
+func (w *State) PrintDirections(destination Destination) {
 
 	for i := 0; i < w.GetHeight(); i++ {
 		for j := 0; j < w.GetWidth(); j++ {
@@ -101,7 +99,7 @@ func (w *world.State) PrintDirections(destination Destination) {
 }
 
 // Generates the flow field to the destination
-func (w *world.State) GenerateFlowField(destination Destination) error {
+func (w *State) GenerateFlowField(destination Destination) error {
 
 	FindShortestPath(w, destination)
 	w.computeDirections(destination)
@@ -112,7 +110,7 @@ func (w *world.State) GenerateFlowField(destination Destination) error {
 
 // Assuming that distance information has been filled in by dijkstra,
 // calculate the directions needed
-func (w *world.State) computeDirections(dest Destination) error {
+func (w *State) computeDirections(dest Destination) error {
 
 	for i := 0; i < w.GetWidth(); i++ {
 		for j := 0; j < w.GetHeight(); j++ {

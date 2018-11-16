@@ -1,4 +1,4 @@
-package world
+package main
 
 import (
 	"image"
@@ -8,17 +8,17 @@ import (
 	"math/rand"
 	"strconv"
 
-	"github.com/real-time-footfall-analysis/rtfa-simulation/directions"
 	"github.com/real-time-footfall-analysis/rtfa-simulation/geometry"
-	"github.com/real-time-footfall-analysis/rtfa-simulation/individual"
 )
 
 type Tile struct {
 	walkable   bool
-	People     []*individual.Individual
+	People     []*Individual
 	HitCount   int
 	Dists      map[Destination]float64 // Used internally for dijkstra
 	Directions map[Destination]Direction
+	X          int
+	Y          int
 }
 
 func (t *Tile) Walkable() bool {
@@ -38,7 +38,7 @@ type State struct {
 	background image.Image
 	Regions    []Region
 	TileWidth  int // TODO: do we need this?
-	allPeople  []*individual.Individual
+	allPeople  []*Individual
 }
 
 func (w *State) GetWidth() int {
@@ -60,10 +60,10 @@ func (w *State) GetTile(x, y int) *Tile {
 	return &(w.tiles[x][y])
 }
 
-func (w *State) GetTileHighRes(x, y float64) (*Tile, error) {
+func (w *State) GetTileHighRes(x, y float64) *Tile {
 
 	// TODO: Ed said we can just floor this?
-	return w.GetTile(int(math.Floor(x/w.TileWidth)), int(math.Floor(y/w.TileWidth)))
+	return w.GetTile(int(math.Floor(x)), int(math.Floor(y)))
 
 }
 
@@ -71,7 +71,7 @@ var counter int = 0
 
 func (w *State) AddRandom() {
 
-	likelihood := individual.Likelihood{
+	likelihood := Likelihood{
 		ProbabilityFunctions: []func(int) bool{
 			func(a int) bool {
 				return true
@@ -80,7 +80,7 @@ func (w *State) AddRandom() {
 		Probabilities: []float64{
 			1,
 		},
-		Destination: directions.Destination{
+		Destination: Destination{
 			X: 20,
 			Y: 20,
 		},
@@ -95,12 +95,12 @@ func (w *State) AddRandom() {
 		if tile.Walkable() && !w.IntersectsAnyone(float64(x)+xf, float64(y)+yf) {
 			r, g, b := color.YCbCrToRGB(uint8(100), uint8(rand.Intn(256)), uint8(rand.Intn(256)))
 			c := color.RGBA{r, g, b, 255}
-			person := individual.Individual{
+			person := Individual{
 				Loc:    geometry.NewPoint(float64(x)+xf, float64(y)+yf),
 				Colour: c, UUID: "SimBot-" + strconv.Itoa(counter),
 				Tick:     0,
 				StepSize: 0.2,
-				Likelihoods: []individual.Likelihood{
+				Likelihoods: []Likelihood{
 					likelihood,
 				},
 			}
@@ -112,7 +112,7 @@ func (w *State) AddRandom() {
 	}
 }
 
-func (w *State) MoveIndividual(person *individual.Individual, theta float64, distance float64) {
+func (w *State) MoveIndividual(person *Individual, theta float64, distance float64) {
 	cx, cy := person.Loc.GetXY()
 	tile := w.GetTile(int(cx), int(cy))
 	_, nx, ny := w.movementIntersects(cx, cy, theta, distance)
