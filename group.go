@@ -22,9 +22,11 @@ func (g *Group) Next(channel chan map[*Individual]utils.OptionalFloat64, w *Stat
 		if !ok {
 			valSet = 1
 			dests[dest] = valSet
+
+		} else {
+			valSet = val + 1
+			dests[dest] = valSet
 		}
-		valSet = val + 1
-		dests[dest] = valSet
 
 		if valSet > bestVal {
 			bestVal = valSet

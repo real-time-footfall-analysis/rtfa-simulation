@@ -123,6 +123,9 @@ func (w *State) MoveIndividual(person *Individual, theta float64, distance float
 
 	if nx >= 0 && int(nx) < w.GetWidth() &&
 		ny >= 0 && int(ny) < w.GetHeight() {
+			distThing := (nx - cx) * (nx - cx) + (ny - cy) * (ny - cy)
+			dist := math.Sqrt(distThing)
+			person.LastMoveDist = dist
 		person.Loc.SetXY(nx, ny)
 		if math.Floor(nx) == math.Floor(cx) &&
 			math.Floor(ny) == math.Floor(cy) {

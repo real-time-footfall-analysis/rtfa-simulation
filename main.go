@@ -52,17 +52,26 @@ func simulate(world *State, r *RenderState) {
 		// Add random people
 
 		groups := make([]*Group, 0)
-		for i := 0; i < 6; i++ {
+		for i := 0; i < 2000; i++ {
 			groups = append(groups, world.AddRandom())
 			people++
 
 		}
 
 		InitFlowFields()
+
 		world.GenerateFlowField(Destination{
 			X: 20,
 			Y: 20,
 		})
+		//world.PrintDistances(Destination{
+		//	X: 820,
+		//	Y: 520,
+		//})
+		//world.PrintDirections(Destination{
+		//	X: 820,
+		//	Y: 520,
+		//})
 
 		// Set up parallel processing channels
 		channels := make([]chan map[*Individual]utils.OptionalFloat64, 0)
