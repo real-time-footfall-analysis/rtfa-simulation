@@ -13,8 +13,8 @@ import (
 
 type Likelihood struct {
 	Destination          directions.Destination // If this likelihood is picked - where should we go
-	probabilityFunctions []func(int) bool       // Array of mutually exclusive functions to return "true" when we should use the corresponding probability
-	probabilities        []float64              // Array of probabilities. MUST be same cardinality as the above.
+	ProbabilityFunctions []func(int) bool       // Array of mutually exclusive functions to return "true" when we should use the corresponding probability
+	Probabilities        []float64              // Array of probabilities. MUST be same cardinality as the above.
 }
 
 type Individual struct {
@@ -28,9 +28,9 @@ type Individual struct {
 }
 
 func (l *Likelihood) ProbabilityAtTick(tick int) float64 {
-	for i, useProb := range l.probabilityFunctions {
+	for i, useProb := range l.ProbabilityFunctions {
 		if useProb(tick) {
-			return l.probabilities[i]
+			return l.Probabilities[i]
 		}
 	}
 	return 0

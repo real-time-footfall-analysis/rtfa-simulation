@@ -1,14 +1,16 @@
 package world
 
 import (
-	"github.com/real-time-footfall-analysis/rtfa-simulation/geometry"
-	"github.com/real-time-footfall-analysis/rtfa-simulation/individual"
 	"image"
 	"image/color"
 	"log"
 	"math"
 	"math/rand"
 	"strconv"
+
+	"github.com/real-time-footfall-analysis/rtfa-simulation/directions"
+	"github.com/real-time-footfall-analysis/rtfa-simulation/geometry"
+	"github.com/real-time-footfall-analysis/rtfa-simulation/individual"
 )
 
 type Tile struct {
@@ -58,6 +60,22 @@ func (w *State) GetTile(x, y int) *Tile {
 var counter int = 0
 
 func (w *State) AddRandom() {
+
+	likelihood := individual.Likelihood{
+		ProbabilityFunctions: []func(int) bool{
+			func(a int) bool {
+				return true
+			},
+		},
+		Probabilities: []float64{
+			1,
+		},
+		Destination: directions.Destination{
+			X: 20,
+			Y: 20,
+		},
+	}
+
 	for {
 		x := rand.Intn(w.GetWidth()-2) + 1
 		y := rand.Intn(w.GetHeight()-2) + 1
@@ -67,7 +85,15 @@ func (w *State) AddRandom() {
 		if tile.Walkable() && !w.IntersectsAnyone(float64(x)+xf, float64(y)+yf) {
 			r, g, b := color.YCbCrToRGB(uint8(100), uint8(rand.Intn(256)), uint8(rand.Intn(256)))
 			c := color.RGBA{r, g, b, 255}
-			person := individual.Individual{Loc: geometry.NewPoint(float64(x)+xf, float64(y)+yf), Colour: c, UUID: "SimBot-" + strconv.Itoa(counter)}
+			person := individual.Individual{
+				Loc:    geometry.NewPoint(float64(x)+xf, float64(y)+yf),
+				Colour: c, UUID: "SimBot-" + strconv.Itoa(counter),
+				Tick:     0,
+				StepSize: 0.2,
+				Likelihoods: []individual.Likelihood{
+					likelihood,
+				},
+			}
 			tile.People = append(tile.People, &person)
 			counter++
 			w.allPeople = append(w.allPeople, &person)
