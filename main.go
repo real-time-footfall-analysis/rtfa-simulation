@@ -5,6 +5,7 @@ import (
 	"time"
 
 	"github.com/real-time-footfall-analysis/rtfa-simulation/directions"
+	"github.com/real-time-footfall-analysis/rtfa-simulation/geometry"
 	"github.com/real-time-footfall-analysis/rtfa-simulation/group"
 	"github.com/real-time-footfall-analysis/rtfa-simulation/individual"
 	"github.com/real-time-footfall-analysis/rtfa-simulation/render"
@@ -14,7 +15,7 @@ import (
 )
 
 func main() {
-	w := world.LoadFromImage("test.png")
+	w := world.LoadFromImage("test5.png")
 	w.LoadRegions("testRegions.json", 53.867225, -1.380985)
 	fmt.Println("state size:", w.GetWidth(), w.GetHeight())
 	for y := 0; y < w.GetHeight(); y++ {
@@ -41,44 +42,49 @@ func main() {
 
 	})
 
-	for y := 0; y < w.GetHeight(); y++ {
-		for x := 0; x < w.GetWidth(); x++ {
-			fmt.Print(int(w.GetTile(x, y).HitCount), ",")
-		}
-		fmt.Println()
-	}
-	fmt.Println()
-
 	fmt.Println("Bottom")
 
 }
 
 func simulate(world *world.State, r *render.RenderState) {
-	time.Sleep(5 * time.Second)
-	ticker := time.NewTicker(100 * time.Millisecond)
+	//time.Sleep(5 * time.Second)
+	ticker := time.NewTicker(10 * time.Millisecond)
 	go func() {
 		people := 0
 		steps := 0
+
+		for i := 0; i < 60000; i++ {
+			world.AddRandom()
+			people++
+
+		}
+		var avg float64 = -1
 		for t := range ticker.C {
-			fmt.Println(steps, "Tick at", t)
 
-			if steps%2 == 0 && steps < 1000 {
-				for i := 0; i < 10000; i++ {
-					world.AddRandom()
-					people++
+			//fmt.Println(steps, "Tick at", t)
 
-				}
-			} else {
-				for i := 0; i < 100*steps; i++ {
-					world.MoveRandom()
-				}
+			world.MoveAll()
+
+			if steps%50 == 0 {
+				r.SendEvent(render.UpdateEvent{world})
 			}
-			r.SendEvent(render.UpdateEvent{world})
-			fmt.Println("people: ", people)
+			//fmt.Println("people: ", people)
 			steps++
+			geometry.FlipTick()
+			dt := time.Since(t).Nanoseconds()
+			if avg < 0 {
+				avg = float64(dt)
+			} else {
+				avg = 0.9*avg + 0.1*float64(dt)
+			}
+
+			if steps%50 == 0 {
+				fmt.Println("average tick time: ", avg/1000000000)
+			}
+
 		}
 	}()
-	time.Sleep(60 * time.Second)
+	time.Sleep(600 * time.Second)
 	ticker.Stop()
 	fmt.Println("Ticker stopped")
 }
