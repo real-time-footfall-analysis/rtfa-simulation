@@ -69,24 +69,161 @@ func (w *State) GetTileHighRes(x, y float64) *Tile {
 
 var counter int = 0
 
-func (w *State) AddRandom() *Group {
+func (w *State) AddRandom() *Individual {
 
-	likelihood := Likelihood{
-		ProbabilityFunctions: []func(int) bool{
-			func(a int) bool {
-				return true
+	set1 := []Likelihood {
+		{
+			ProbabilityFunctions: []func(int) bool{
+				func(tick int) bool {
+					if tick > 600 {
+						return false
+					}
+					return true
+				},
+			},
+			Probabilities: []float64{
+				1,
+			},
+			Destination: Destination{
+				X: 20,
+				Y: 20,
 			},
 		},
-		Probabilities: []float64{
-			1,
-		},
-		Destination: Destination{
-			X: 20,
-			Y: 20,
+		{
+			ProbabilityFunctions: []func(int) bool{
+				func(tick int) bool {
+					if tick > 600 {
+						return true
+					}
+					return false
+				},
+			},
+			Probabilities: []float64{
+				1,
+			},
+			Destination: Destination{
+				X: 180,
+				Y: 180,
+			},
 		},
 	}
 
-	for {
+	set2 := []Likelihood{
+		{
+			ProbabilityFunctions: []func(int) bool{
+				func(tick int) bool {
+					if tick > 450 {
+						return false
+					}
+					return true
+				},
+			},
+			Probabilities: []float64{
+				1,
+			},
+			Destination: Destination{
+				X: 100,
+				Y: 100,
+			},
+		},
+		{
+			ProbabilityFunctions: []func(int) bool{
+				func(tick int) bool {
+					if tick > 450 {
+						return true
+					}
+					return false
+				},
+			},
+			Probabilities: []float64{
+				1,
+			},
+			Destination: Destination{
+				X: 20,
+				Y: 20,
+			},
+		},
+	}
+
+	set3 := []Likelihood{
+		{
+			ProbabilityFunctions: []func(int) bool{
+				func(tick int) bool {
+					if tick > 500 {
+						return false
+					}
+					return true
+				},
+			},
+			Probabilities: []float64{
+				1,
+			},
+			Destination: Destination{
+				X: 180,
+				Y: 20,
+			},
+		},
+		{
+			ProbabilityFunctions: []func(int) bool{
+				func(tick int) bool {
+					if tick > 500 {
+						return true
+					}
+					return false
+				},
+			},
+			Probabilities: []float64{
+				1,
+			},
+			Destination: Destination{
+				X: 20,
+				Y: 20,
+			},
+		},
+	}
+
+	set4 := []Likelihood{
+		{
+			ProbabilityFunctions: []func(int) bool{
+				func(tick int) bool {
+					if tick > 120 {
+						return false
+					}
+					return true
+				},
+			},
+			Probabilities: []float64{
+				1,
+			},
+			Destination: Destination{
+				X: 180,
+				Y: 20,
+			},
+		},
+		{
+			ProbabilityFunctions: []func(int) bool{
+				func(tick int) bool {
+					if tick > 120 {
+						return true
+					}
+					return false
+				},
+			},
+			Probabilities: []float64{
+				1,
+			},
+			Destination: Destination{
+				X: 20,
+				Y: 130,
+			},
+		},
+	}
+
+	sets := [][]Likelihood {
+		set1, set2, set3, set4,
+	}
+
+		for {
 		x := rand.Intn(w.GetWidth()-2) + 1
 		y := rand.Intn(w.GetHeight()-2) + 1
 		xf := rand.Float64()
@@ -95,23 +232,19 @@ func (w *State) AddRandom() *Group {
 		if tile.Walkable() && !w.IntersectsAnyone(float64(x)+xf, float64(y)+yf) {
 			r, g, b := color.YCbCrToRGB(uint8(100), uint8(rand.Intn(256)), uint8(rand.Intn(256)))
 			c := color.RGBA{r, g, b, 255}
+
+			randSetIndex := rand.Intn(4)
 			person := Individual{
 				Loc:    geometry.NewPoint(float64(x)+xf, float64(y)+yf),
 				Colour: c, UUID: "SimBot-" + strconv.Itoa(counter),
 				Tick:     0,
 				StepSize: 0.2,
-				Likelihoods: []Likelihood{
-					likelihood,
-				},
+				Likelihoods: sets[randSetIndex],
 			}
 			tile.People = append(tile.People, &person)
 			counter++
 			w.allPeople = append(w.allPeople, &person)
-			return &Group{
-				individuals: []*Individual{
-					&person,
-				},
-			}
+			return &person
 		}
 	}
 }

@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"math/rand"
 	"time"
 
 	"github.com/real-time-footfall-analysis/rtfa-simulation/geometry"
@@ -11,8 +12,8 @@ import (
 )
 
 func main() {
-	w := LoadFromImage("test5.png")
-	w.LoadRegions("testRegions.json", 53.867225, -1.380985)
+	w := LoadFromImage("demo_complex.png")
+	w.LoadRegions("testRegions.json", 51.506478, -0.172219)
 	fmt.Println("state size:", w.GetWidth(), w.GetHeight())
 	for y := 0; y < w.GetHeight(); y++ {
 		for x := 0; x < w.GetWidth(); x++ {
@@ -51,18 +52,49 @@ func simulate(world *State, r *RenderState) {
 
 		// Add random people
 
-		groups := make([]*Group, 0)
-		for i := 0; i < 2000; i++ {
-			groups = append(groups, world.AddRandom())
+		groups := make([]*Group, 2000)
+		for i, _ := range groups {
+			groups[i] = &Group{
+				Individuals:  make([]*Individual, 0),
+			}
+		}
+		for i := 0; i < 10000; i++ {
+			indiv := world.AddRandom()
+			groupIndex := rand.Intn(2000)
+			groups[groupIndex].Individuals = append(groups[groupIndex].Individuals, indiv)
 			people++
-
 		}
 
 		InitFlowFields()
 
 		world.GenerateFlowField(Destination{
 			X: 20,
+			Y: 180,
+		})
+
+		world.GenerateFlowField(Destination{
+			X: 180,
 			Y: 20,
+		})
+
+		world.GenerateFlowField(Destination{
+			X: 180,
+			Y: 180,
+		})
+
+		world.GenerateFlowField(Destination{
+			X: 20,
+			Y: 20,
+		})
+
+		world.GenerateFlowField(Destination{
+			X: 100,
+			Y: 100,
+		})
+
+		world.GenerateFlowField(Destination{
+			X: 20,
+			Y: 130,
 		})
 		//world.PrintDistances(Destination{
 		//	X: 820,

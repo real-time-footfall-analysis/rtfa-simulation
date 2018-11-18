@@ -5,7 +5,7 @@ import (
 )
 
 type Group struct {
-	individuals []*Individual
+	Individuals []*Individual
 }
 
 func (g *Group) Next(channel chan map[*Individual]utils.OptionalFloat64, w *State) {
@@ -14,7 +14,7 @@ func (g *Group) Next(channel chan map[*Individual]utils.OptionalFloat64, w *Stat
 	bestVal := 0
 
 	// Get each destination that someone would like to go to, and tally them up
-	for _, individual := range g.individuals {
+	for _, individual := range g.Individuals {
 		dest := individual.Next()
 
 		val, ok := dests[dest]
@@ -44,7 +44,7 @@ func (g *Group) Next(channel chan map[*Individual]utils.OptionalFloat64, w *Stat
 	// Tell each person in the group where they need to go, and they will tell you which direction they need to go in
 
 	directions := make(map[*Individual]utils.OptionalFloat64, 0)
-	for _, individual := range g.individuals {
+	for _, individual := range g.Individuals {
 		directions[individual] = individual.DirectionForDestination(chosenDest, w)
 	}
 	channel <- directions
