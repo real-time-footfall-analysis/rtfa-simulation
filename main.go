@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"math/rand"
 	"time"
 
 	"github.com/real-time-footfall-analysis/rtfa-simulation/geometry"
@@ -11,8 +12,11 @@ import (
 )
 
 func main() {
-	w := LoadFromImage("test5.png")
-	w.LoadRegions("testRegions.json", 53.867225, -1.380985)
+	w := LoadFromImage("test6.png")
+	w.LoadRegions("testRegions.json", 51.506478, -0.172219)
+	w.time = time.Now()
+	w.BulkSend = true
+
 	fmt.Println("state size:", w.GetWidth(), w.GetHeight())
 	for y := 0; y < w.GetHeight(); y++ {
 		for x := 0; x < w.GetWidth(); x++ {
@@ -27,7 +31,7 @@ func main() {
 	fmt.Println()
 
 	driver.Main(func(s screen.Screen) {
-		r := SetupRender(s, w.GetImage())
+		r := SetupRender(s, w.GetImage(), &w.Regions)
 		defer r.Release()
 
 		go simulate(&w, &r)
@@ -50,19 +54,60 @@ func simulate(world *State, r *RenderState) {
 		steps := 0
 
 		// Add random people
+		group_count := 2000
 
-		groups := make([]*Group, 0)
-		for i := 0; i < 6; i++ {
-			groups = append(groups, world.AddRandom())
+		groups := make([]*Group, group_count)
+		for i, _ := range groups {
+			groups[i] = &Group{
+				Individuals: make([]*Individual, 0),
+			}
+		}
+		for i := 0; i < 10000; i++ {
+			indiv := world.AddRandom()
+			groupIndex := rand.Intn(group_count)
+			groups[groupIndex].Individuals = append(groups[groupIndex].Individuals, indiv)
 			people++
-
 		}
 
 		InitFlowFields()
+
+		world.GenerateFlowField(Destination{
+			X: 20,
+			Y: 180,
+		})
+
+		world.GenerateFlowField(Destination{
+			X: 180,
+			Y: 20,
+		})
+
+		world.GenerateFlowField(Destination{
+			X: 180,
+			Y: 180,
+		})
+
 		world.GenerateFlowField(Destination{
 			X: 20,
 			Y: 20,
 		})
+
+		world.GenerateFlowField(Destination{
+			X: 100,
+			Y: 100,
+		})
+
+		world.GenerateFlowField(Destination{
+			X: 20,
+			Y: 130,
+		})
+		//world.PrintDistances(Destination{
+		//	X: 820,
+		//	Y: 520,
+		//})
+		//world.PrintDirections(Destination{
+		//	X: 820,
+		//	Y: 520,
+		//})
 
 		// Set up parallel processing channels
 		channels := make([]chan map[*Individual]utils.OptionalFloat64, 0)
@@ -95,6 +140,7 @@ func simulate(world *State, r *RenderState) {
 			}
 			//fmt.Println("people: ", people)
 			steps++
+			world.time.Add(time.Second)
 			geometry.FlipTick()
 			dt := time.Since(t).Nanoseconds()
 			if avg < 0 {
@@ -109,9 +155,10 @@ func simulate(world *State, r *RenderState) {
 
 		}
 	}()
-	time.Sleep(600 * time.Second)
+	time.Sleep(60 * time.Second)
 	ticker.Stop()
 	fmt.Println("Ticker stopped")
+	SendBulk()
 }
 
 func processMovementsForGroup(world *State, movements map[*Individual]utils.OptionalFloat64) {
@@ -124,5 +171,7 @@ func processMovementsForGroup(world *State, movements map[*Individual]utils.Opti
 		}
 
 		world.MoveIndividual(individual, theta, individual.StepSize)
+
+		UpdateServer(&world.Regions, individual, world.time, world.BulkSend)
 	}
 }

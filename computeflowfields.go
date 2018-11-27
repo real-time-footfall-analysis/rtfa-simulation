@@ -98,6 +98,24 @@ func (w *State) PrintDirections(destination Destination) {
 
 }
 
+func (w *State) PrintDistances(destination Destination) {
+
+	for i := 0; i < w.GetHeight(); i++ {
+		for j := 0; j < w.GetWidth(); j++ {
+
+			tile := w.GetTile(j, i)
+
+
+			fmt.Printf("%05.f", tile.Dists[destination])
+
+		}
+		fmt.Println()
+
+	}
+	fmt.Println()
+
+}
+
 // Generates the flow field to the destination
 func (w *State) GenerateFlowField(destination Destination) error {
 

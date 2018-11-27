@@ -4,7 +4,6 @@ import (
 	"bytes"
 	"encoding/json"
 	"golang.org/x/exp/errors/fmt"
-	"io/ioutil"
 	"log"
 	"math"
 	"net/http"
@@ -26,7 +25,7 @@ type Region struct {
 	Type    string  `json:"type"`
 	Lat     float64 `json:"lat,omitempty"`
 	Lng     float64 `json:"lng,omitempty"`
-	Radius  int32   `json:"radius,omitempty"`
+	Radius  int     `json:"radius,omitempty"`
 	EventID int32   `json:"eventID"`
 	X       float64 `json:"X"`
 	Y       float64 `json:"Y"`
@@ -80,30 +79,40 @@ func latLngToCoords(lat, lng, latOrigin, lngOrigin float64) (float64, float64) {
 	return x, y
 }
 
-func UpdateServer(regions *[]Region, individual *Individual, time time.Time) {
-	for i, r := range *regions {
-		fmt.Println(i, " - ", r)
+func UpdateServer(regions *[]Region, individual *Individual, time time.Time, bulk bool) {
+	for _, r := range *regions {
 		x, y := individual.Loc.GetLatestXY()
 		dx := x - r.X
 		dy := y - r.Y
 		distanceSquared := math.Pow(dx, 2) + math.Pow(dy, 2)
 		if r.sqRad > distanceSquared {
 			// this individual is in this region
-			_, knownInside := individual.RegionIds[r.ID]
-			if !knownInside {
+			//_, knownInside := individual.RegionIds[r.ID]
+			if !individual.RegionIds[r.ID] {
+				individual.RegionIds[r.ID] = true
 				// we must send update to backend
 				u := update{EventID: r.EventID, RegionID: r.ID, UUID: individual.UUID, Entering: true, OccurredAt: time.Unix()}
-				fmt.Println(u)
-				sendUpdate(&u)
+				if bulk {
+					bulkUpdate = append(bulkUpdate, u)
+				} else {
+					sendUpdate(&u)
+				}
+				log.Println(individual.UUID, " entering ", r.ID)
+
 			}
 		} else {
 			// this individual is not in this region
-			_, knownInside := individual.RegionIds[r.ID]
-			if knownInside {
+			//_, knownInside := individual.RegionIds[r.ID]
+			if individual.RegionIds[r.ID] {
+				individual.RegionIds[r.ID] = false
 				// we must send update to backend to say this individual is no longer in the region.
 				u := update{EventID: r.EventID, RegionID: r.ID, UUID: individual.UUID, Entering: false, OccurredAt: time.Unix()}
-				fmt.Println(u)
-				sendUpdate(&u)
+				if bulk {
+					bulkUpdate = append(bulkUpdate, u)
+				} else {
+					sendUpdate(&u)
+				}
+				log.Println(individual.UUID, " leaving ", r.ID, " ------------")
 			}
 		}
 
@@ -126,11 +135,38 @@ func sendUpdate(u *update) {
 	if err != nil {
 		log.Print("Cannot connect to backend")
 	} else {
-		defer resp.Body.Close()
+		err := resp.Body.Close()
+		if err != nil {
+			log.Println("cannot close http response, don't care")
+		}
+	}
+}
 
-		fmt.Println("response Status:", resp.Status)
-		fmt.Println("response Headers:", resp.Header)
-		body, _ := ioutil.ReadAll(resp.Body)
-		fmt.Println("response Body:", string(body))
+const bulkUrl = "http://api.jackchorley.club/update/bulk"
+
+var bulkUpdate []update
+
+func SendBulk() {
+
+	var jsonStr, err = json.Marshal(bulkUpdate)
+	if err != nil {
+		log.Fatal("Cannot marshal bulk update:")
+	}
+	buffer := bytes.NewBuffer(jsonStr)
+	log.Println("buffer: ", buffer)
+	log.Println("sending", len(bulkUpdate), "updates to backend")
+	bulkUpdate = nil // reset updates as not to resend them
+	req, err := http.NewRequest("POST", bulkUrl, buffer)
+	//req.Header.Set("X-Custom-Header", "myvalue")
+	req.Header.Set("Content-Type", "application/json")
+	client := &http.Client{}
+	resp, err := client.Do(req)
+	if err != nil {
+		log.Print("Cannot connect to backend")
+	} else {
+		err := resp.Body.Close()
+		if err != nil {
+			log.Println("cannot close http response, don't care")
+		}
 	}
 }

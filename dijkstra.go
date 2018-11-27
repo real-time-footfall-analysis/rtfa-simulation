@@ -91,6 +91,12 @@ func initQueue(w *State, dest Destination) (*pq.PriorityQueue, error) {
 
 	// Insert the destination with distance 0
 	destTile := w.GetTile(dest.X, dest.Y)
+	if destTile.Dists == nil {
+		destTile.Dists = make(map[Destination]float64)
+	}
+	if destTile.Directions == nil {
+		destTile.Directions = make(map[Destination]Direction)
+	}
 	destTile.Dists[dest] = 0
 	queue.Insert(destTile, destTile.Dists[dest])
 

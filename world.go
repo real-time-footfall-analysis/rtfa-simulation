@@ -1,14 +1,14 @@
 package main
 
 import (
+	"github.com/real-time-footfall-analysis/rtfa-simulation/geometry"
 	"image"
 	"image/color"
 	"log"
 	"math"
 	"math/rand"
 	"strconv"
-
-	"github.com/real-time-footfall-analysis/rtfa-simulation/geometry"
+	"time"
 )
 
 type Tile struct {
@@ -39,6 +39,8 @@ type State struct {
 	Regions    []Region
 	TileWidth  int // TODO: do we need this?
 	allPeople  []*Individual
+	time       time.Time
+	BulkSend   bool
 }
 
 func (w *State) GetWidth() int {
@@ -69,21 +71,158 @@ func (w *State) GetTileHighRes(x, y float64) *Tile {
 
 var counter int = 0
 
-func (w *State) AddRandom() *Group {
+func (w *State) AddRandom() *Individual {
 
-	likelihood := Likelihood{
-		ProbabilityFunctions: []func(int) bool{
-			func(a int) bool {
-				return true
+	set1 := []Likelihood{
+		{
+			ProbabilityFunctions: []func(int) bool{
+				func(tick int) bool {
+					if tick > 600 {
+						return false
+					}
+					return true
+				},
+			},
+			Probabilities: []float64{
+				1,
+			},
+			Destination: Destination{
+				X: 20,
+				Y: 20,
 			},
 		},
-		Probabilities: []float64{
-			1,
+		{
+			ProbabilityFunctions: []func(int) bool{
+				func(tick int) bool {
+					if tick > 600 {
+						return true
+					}
+					return false
+				},
+			},
+			Probabilities: []float64{
+				1,
+			},
+			Destination: Destination{
+				X: 180,
+				Y: 180,
+			},
 		},
-		Destination: Destination{
-			X: 20,
-			Y: 20,
+	}
+
+	set2 := []Likelihood{
+		{
+			ProbabilityFunctions: []func(int) bool{
+				func(tick int) bool {
+					if tick > 450 {
+						return false
+					}
+					return true
+				},
+			},
+			Probabilities: []float64{
+				1,
+			},
+			Destination: Destination{
+				X: 100,
+				Y: 100,
+			},
 		},
+		{
+			ProbabilityFunctions: []func(int) bool{
+				func(tick int) bool {
+					if tick > 450 {
+						return true
+					}
+					return false
+				},
+			},
+			Probabilities: []float64{
+				1,
+			},
+			Destination: Destination{
+				X: 20,
+				Y: 20,
+			},
+		},
+	}
+
+	set3 := []Likelihood{
+		{
+			ProbabilityFunctions: []func(int) bool{
+				func(tick int) bool {
+					if tick > 500 {
+						return false
+					}
+					return true
+				},
+			},
+			Probabilities: []float64{
+				1,
+			},
+			Destination: Destination{
+				X: 180,
+				Y: 20,
+			},
+		},
+		{
+			ProbabilityFunctions: []func(int) bool{
+				func(tick int) bool {
+					if tick > 500 {
+						return true
+					}
+					return false
+				},
+			},
+			Probabilities: []float64{
+				1,
+			},
+			Destination: Destination{
+				X: 20,
+				Y: 20,
+			},
+		},
+	}
+
+	set4 := []Likelihood{
+		{
+			ProbabilityFunctions: []func(int) bool{
+				func(tick int) bool {
+					if tick > 120 {
+						return false
+					}
+					return true
+				},
+			},
+			Probabilities: []float64{
+				1,
+			},
+			Destination: Destination{
+				X: 180,
+				Y: 20,
+			},
+		},
+		{
+			ProbabilityFunctions: []func(int) bool{
+				func(tick int) bool {
+					if tick > 120 {
+						return true
+					}
+					return false
+				},
+			},
+			Probabilities: []float64{
+				1,
+			},
+			Destination: Destination{
+				X: 20,
+				Y: 130,
+			},
+		},
+	}
+
+	sets := [][]Likelihood{
+		set1, set2, set3, set4,
 	}
 
 	for {
@@ -95,23 +234,20 @@ func (w *State) AddRandom() *Group {
 		if tile.Walkable() && !w.IntersectsAnyone(float64(x)+xf, float64(y)+yf) {
 			r, g, b := color.YCbCrToRGB(uint8(100), uint8(rand.Intn(256)), uint8(rand.Intn(256)))
 			c := color.RGBA{r, g, b, 255}
+
+			randSetIndex := rand.Intn(4)
 			person := Individual{
 				Loc:    geometry.NewPoint(float64(x)+xf, float64(y)+yf),
 				Colour: c, UUID: "SimBot-" + strconv.Itoa(counter),
-				Tick:     0,
-				StepSize: 0.2,
-				Likelihoods: []Likelihood{
-					likelihood,
-				},
+				Tick:        0,
+				StepSize:    0.2,
+				Likelihoods: sets[randSetIndex],
+				RegionIds:   make(map[int32]bool, len(w.Regions)),
 			}
 			tile.People = append(tile.People, &person)
 			counter++
 			w.allPeople = append(w.allPeople, &person)
-			return &Group{
-				individuals: []*Individual{
-					&person,
-				},
-			}
+			return &person
 		}
 	}
 }
@@ -123,6 +259,9 @@ func (w *State) MoveIndividual(person *Individual, theta float64, distance float
 
 	if nx >= 0 && int(nx) < w.GetWidth() &&
 		ny >= 0 && int(ny) < w.GetHeight() {
+		distThing := (nx-cx)*(nx-cx) + (ny-cy)*(ny-cy)
+		dist := math.Sqrt(distThing)
+		person.LastMoveDist = dist
 		person.Loc.SetXY(nx, ny)
 		if math.Floor(nx) == math.Floor(cx) &&
 			math.Floor(ny) == math.Floor(cy) {
