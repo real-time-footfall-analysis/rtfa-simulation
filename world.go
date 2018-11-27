@@ -1,14 +1,14 @@
 package main
 
 import (
+	"github.com/real-time-footfall-analysis/rtfa-simulation/geometry"
 	"image"
 	"image/color"
 	"log"
 	"math"
 	"math/rand"
 	"strconv"
-
-	"github.com/real-time-footfall-analysis/rtfa-simulation/geometry"
+	"time"
 )
 
 type Tile struct {
@@ -39,6 +39,8 @@ type State struct {
 	Regions    []Region
 	TileWidth  int // TODO: do we need this?
 	allPeople  []*Individual
+	time       time.Time
+	BulkSend   bool
 }
 
 func (w *State) GetWidth() int {
@@ -71,7 +73,7 @@ var counter int = 0
 
 func (w *State) AddRandom() *Individual {
 
-	set1 := []Likelihood {
+	set1 := []Likelihood{
 		{
 			ProbabilityFunctions: []func(int) bool{
 				func(tick int) bool {
@@ -219,11 +221,11 @@ func (w *State) AddRandom() *Individual {
 		},
 	}
 
-	sets := [][]Likelihood {
+	sets := [][]Likelihood{
 		set1, set2, set3, set4,
 	}
 
-		for {
+	for {
 		x := rand.Intn(w.GetWidth()-2) + 1
 		y := rand.Intn(w.GetHeight()-2) + 1
 		xf := rand.Float64()
@@ -237,9 +239,10 @@ func (w *State) AddRandom() *Individual {
 			person := Individual{
 				Loc:    geometry.NewPoint(float64(x)+xf, float64(y)+yf),
 				Colour: c, UUID: "SimBot-" + strconv.Itoa(counter),
-				Tick:     0,
-				StepSize: 0.2,
+				Tick:        0,
+				StepSize:    0.2,
 				Likelihoods: sets[randSetIndex],
+				RegionIds:   make(map[int32]bool, len(w.Regions)),
 			}
 			tile.People = append(tile.People, &person)
 			counter++
@@ -256,9 +259,9 @@ func (w *State) MoveIndividual(person *Individual, theta float64, distance float
 
 	if nx >= 0 && int(nx) < w.GetWidth() &&
 		ny >= 0 && int(ny) < w.GetHeight() {
-			distThing := (nx - cx) * (nx - cx) + (ny - cy) * (ny - cy)
-			dist := math.Sqrt(distThing)
-			person.LastMoveDist = dist
+		distThing := (nx-cx)*(nx-cx) + (ny-cy)*(ny-cy)
+		dist := math.Sqrt(distThing)
+		person.LastMoveDist = dist
 		person.Loc.SetXY(nx, ny)
 		if math.Floor(nx) == math.Floor(cx) &&
 			math.Floor(ny) == math.Floor(cy) {

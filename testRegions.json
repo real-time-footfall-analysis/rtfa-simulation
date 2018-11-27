@@ -1,1 +1,2 @@
-[{"regionID":62,"name":"Unnamed Region","type":"gps","lat":51.506478,"lng":-0.172219,"radius":1,"eventID":19,"isQueue":false}]
+[{"regionID":62,"name":"Unnamed Region","type":"gps","lat":51.506478,"lng":-0.172219,"radius":1,"eventID":19,"isQueue":false,"x":100,"y":100},
+  {"regionID":63,"name":"Unnamed Region2","type":"gps","lat":51.506478,"lng":-0.172219,"radius":10,"eventID":19,"isQueue":false,"x":150,"y":150}]

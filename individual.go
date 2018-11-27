@@ -16,13 +16,13 @@ type Likelihood struct {
 }
 
 type Individual struct {
-	Loc         geometry.Point     // The point where this person current is stood
-	Tick        int                // The current tick, from a base of 0, to measure time
-	Likelihoods []Likelihood       // The array of likelihoods for their preferences
-	StepSize    float64            // The average size step that the person will walk at (picked from a normal distribution)
-	RegionIds   map[int32]struct{} // map (set) containing keys of all regions the actor is in
-	UUID        string             // UUID of this actor for sending updates
-	Colour      color.Color        // colour to render this individual
+	Loc          geometry.Point // The point where this person current is stood
+	Tick         int            // The current tick, from a base of 0, to measure time
+	Likelihoods  []Likelihood   // The array of likelihoods for their preferences
+	StepSize     float64        // The average size step that the person will walk at (picked from a normal distribution)
+	RegionIds    map[int32]bool // map (set) containing keys of all regions the actor is in
+	UUID         string         // UUID of this actor for sending updates
+	Colour       color.Color    // colour to render this individual
 	LastMoveDist float64
 }
 

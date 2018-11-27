@@ -12,8 +12,11 @@ import (
 )
 
 func main() {
-	w := LoadFromImage("demo_complex.png")
+	w := LoadFromImage("test6.png")
 	w.LoadRegions("testRegions.json", 51.506478, -0.172219)
+	w.time = time.Now()
+	w.BulkSend = true
+
 	fmt.Println("state size:", w.GetWidth(), w.GetHeight())
 	for y := 0; y < w.GetHeight(); y++ {
 		for x := 0; x < w.GetWidth(); x++ {
@@ -51,16 +54,17 @@ func simulate(world *State, r *RenderState) {
 		steps := 0
 
 		// Add random people
+		group_count := 2000
 
-		groups := make([]*Group, 2000)
+		groups := make([]*Group, group_count)
 		for i, _ := range groups {
 			groups[i] = &Group{
-				Individuals:  make([]*Individual, 0),
+				Individuals: make([]*Individual, 0),
 			}
 		}
 		for i := 0; i < 10000; i++ {
 			indiv := world.AddRandom()
-			groupIndex := rand.Intn(2000)
+			groupIndex := rand.Intn(group_count)
 			groups[groupIndex].Individuals = append(groups[groupIndex].Individuals, indiv)
 			people++
 		}
@@ -136,6 +140,7 @@ func simulate(world *State, r *RenderState) {
 			}
 			//fmt.Println("people: ", people)
 			steps++
+			world.time.Add(time.Second)
 			geometry.FlipTick()
 			dt := time.Since(t).Nanoseconds()
 			if avg < 0 {
@@ -150,9 +155,10 @@ func simulate(world *State, r *RenderState) {
 
 		}
 	}()
-	time.Sleep(600 * time.Second)
+	time.Sleep(60 * time.Second)
 	ticker.Stop()
 	fmt.Println("Ticker stopped")
+	SendBulk()
 }
 
 func processMovementsForGroup(world *State, movements map[*Individual]utils.OptionalFloat64) {
@@ -165,5 +171,7 @@ func processMovementsForGroup(world *State, movements map[*Individual]utils.Opti
 		}
 
 		world.MoveIndividual(individual, theta, individual.StepSize)
+
+		UpdateServer(&world.Regions, individual, world.time, world.BulkSend)
 	}
 }
