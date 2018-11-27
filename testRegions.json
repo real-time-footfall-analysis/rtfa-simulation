@@ -1,2 +1,7 @@
-[{"regionID":62,"name":"Unnamed Region","type":"gps","lat":51.506478,"lng":-0.172219,"radius":1,"eventID":19,"isQueue":false,"x":100,"y":100},
-  {"regionID":63,"name":"Unnamed Region2","type":"gps","lat":51.506478,"lng":-0.172219,"radius":10,"eventID":19,"isQueue":false,"x":150,"y":150}]
+[{"regionID":62,"name":"Unnamed Region1","type":"gps","lat":51.506478,"lng":-0.172219,"radius":5,"eventID":19,"isQueue":false,"x":100,"y":100},
+  {"regionID":63,"name":"Unnamed Region2","type":"gps","lat":51.506478,"lng":-0.172219,"radius":10,"eventID":19,"isQueue":false,"x":200,"y":150},
+  {"regionID":64,"name":"Unnamed Region3","type":"gps","lat":51.506478,"lng":-0.172219,"radius":14,"eventID":19,"isQueue":false,"x":130,"y":110},
+  {"regionID":65,"name":"Unnamed Region4","type":"gps","lat":51.506478,"lng":-0.172219,"radius":12,"eventID":19,"isQueue":false,"x":70,"y":178},
+  {"regionID":66,"name":"Unnamed Region5","type":"gps","lat":51.506478,"lng":-0.172219,"radius":11,"eventID":19,"isQueue":false,"x":159,"y":7},
+  {"regionID":67,"name":"Unnamed Region6","type":"gps","lat":51.506478,"lng":-0.172219,"radius":19,"eventID":19,"isQueue":false,"x":18,"y":42},
+  {"regionID":68,"name":"Unnamed Region7","type":"gps","lat":51.506478,"lng":-0.172219,"radius":16,"eventID":19,"isQueue":false,"x":81,"y":85}]

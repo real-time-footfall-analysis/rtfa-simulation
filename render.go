@@ -14,6 +14,7 @@ import (
 	"image/draw"
 	"log"
 	"math"
+	"math/rand"
 )
 
 type RenderState struct {
@@ -23,6 +24,8 @@ type RenderState struct {
 	t               screen.Texture
 	bb              screen.Buffer
 	bt              screen.Texture
+	rb              screen.Buffer
+	rt              screen.Texture
 	sz              size.Event
 	windowScale     float64
 	backgroundScale int
@@ -35,7 +38,7 @@ type UpdateEvent struct {
 	World *State
 }
 
-func SetupRender(s screen.Screen, original image.Image) RenderState {
+func SetupRender(s screen.Screen, original image.Image, regions *[]Region) RenderState {
 	r := RenderState{s: s}
 
 	r.backgroundScale = 1
@@ -61,19 +64,41 @@ func SetupRender(s screen.Screen, original image.Image) RenderState {
 	}
 	r.bb = bb
 
+	rb, err := s.NewBuffer(size0)
+	if err != nil {
+		log.Fatal(err)
+	}
+	r.rb = rb
+
 	t, err := s.NewTexture(size0)
 	if err != nil {
 		log.Fatal(err)
 	}
 	r.t = t
+
 	bt, err := s.NewTexture(size0)
 	if err != nil {
 		log.Fatal(err)
 	}
 	r.bt = bt
 
+	rt, err := s.NewTexture(size0)
+	if err != nil {
+		log.Fatal(err)
+	}
+	r.rt = rt
+
 	bufferImage(r.bb, r.i)
 	r.bt.Upload(image.Point{}, r.bb, r.bb.Bounds())
+
+	for _, region := range *regions {
+		fmt.Println("region: ", region.Name, region.X, region.Y)
+		red, green, blue := color.YCbCrToRGB(uint8(100), uint8(rand.Intn(256)), uint8(rand.Intn(256)))
+		c := color.RGBA{red, green, blue, 100}
+		drawRegionInBuffer(&r, region.X, region.Y, c, region.Radius)
+	}
+
+	r.rt.Upload(image.Point{}, r.rb, r.rb.Bounds())
 
 	r.windowScale = float64(1)
 
@@ -188,6 +213,24 @@ func drawPersonInBuffer(r *RenderState, x, y float64, c color.Color) {
 	//r.b.RGBA().Set(ix, iy, c)
 }
 
+func drawRegionInBuffer(r *RenderState, x, y float64, c color.Color, rad int) {
+	ix := int(x * float64(r.backgroundScale))
+	iy := int(y * float64(r.backgroundScale))
+	pr := r.backgroundScale * rad
+	if pr < 2 {
+		pr = 2
+	}
+
+	for px := -pr; px < pr; px++ {
+		for py := -pr; py < pr; py++ {
+			if px*px+py*py < pr*pr {
+				fmt.Println("Setting ", ix+px, iy+py)
+				r.rb.RGBA().Set(ix+px, iy+py, c)
+			}
+		}
+	}
+}
+
 func (r *RenderState) Redraw() {
 	// Set background
 	//r.w.Fill(r.sz.Bounds(), color.Transparent, screen.Src)
@@ -203,6 +246,7 @@ func (r *RenderState) Redraw() {
 
 	// Draw texture to window
 	r.w.Draw(src2dst, r.bt, r.bt.Bounds(), screen.Over, nil)
+	r.w.Draw(src2dst, r.rt, r.rt.Bounds(), screen.Over, nil)
 	r.w.Draw(src2dst, r.t, r.t.Bounds(), screen.Over, nil)
 }
 
@@ -241,6 +285,8 @@ func (r *RenderState) Release() {
 	r.b.Release()
 	r.bb.Release()
 	r.bt.Release()
+	r.rb.Release()
+	r.rt.Release()
 	r.w.Release()
 }
 

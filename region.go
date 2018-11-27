@@ -25,7 +25,7 @@ type Region struct {
 	Type    string  `json:"type"`
 	Lat     float64 `json:"lat,omitempty"`
 	Lng     float64 `json:"lng,omitempty"`
-	Radius  int32   `json:"radius,omitempty"`
+	Radius  int     `json:"radius,omitempty"`
 	EventID int32   `json:"eventID"`
 	X       float64 `json:"X"`
 	Y       float64 `json:"Y"`
