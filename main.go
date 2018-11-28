@@ -2,13 +2,13 @@ package main
 
 import (
 	"fmt"
+	"golang.org/x/exp/shiny/driver/gldriver"
 	"log"
 	"math/rand"
 	"time"
 
 	"github.com/real-time-footfall-analysis/rtfa-simulation/geometry"
 	"github.com/real-time-footfall-analysis/rtfa-simulation/utils"
-	"golang.org/x/exp/shiny/driver"
 	"golang.org/x/exp/shiny/screen"
 )
 
@@ -31,7 +31,8 @@ func main() {
 	}
 	fmt.Println()
 
-	driver.Main(func(s screen.Screen) {
+	gldriver.Main(func(s screen.Screen) {
+
 		r := SetupRender(s, w.GetImage(), &w.Regions)
 		defer r.Release()
 

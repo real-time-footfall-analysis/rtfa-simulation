@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"golang.org/x/exp/shiny/driver/gldriver"
 	"golang.org/x/exp/shiny/screen"
 	draw2 "golang.org/x/image/draw"
 	"golang.org/x/image/math/f64"
@@ -41,12 +42,21 @@ type UpdateEvent struct {
 func SetupRender(s screen.Screen, original image.Image, regions *[]Region) RenderState {
 	r := RenderState{s: s}
 
+	context, err := gldriver.NewContext()
+	if err != nil {
+		log.Fatalln("cannot make gl context", err)
+	}
+	log.Println("GL error:", context.GetError())
+
 	r.backgroundScale = 1
 	window, err := s.NewWindow(nil)
 	if err != nil {
 		log.Fatal(err)
 	}
 	r.w = window
+	//rectangle := image.Rect(0,0,100,100)
+	//r.w.Fill(rectangle, color.Black, screen.Src)
+	r.w.Publish()
 
 	nx, ny := r.loadOriginal(original)
 
@@ -247,6 +257,8 @@ func (r *RenderState) Redraw() {
 	r.w.Draw(src2dst, r.bt, r.bt.Bounds(), screen.Over, nil)
 	r.w.Draw(src2dst, r.rt, r.rt.Bounds(), screen.Over, nil)
 	r.w.Draw(src2dst, r.t, r.t.Bounds(), screen.Over, nil)
+	r.w.Publish()
+
 }
 
 func (r *RenderState) SetTileColour(px, py int, colour color.Color) {
