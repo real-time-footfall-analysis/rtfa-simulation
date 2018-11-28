@@ -2,14 +2,12 @@ package main
 
 import (
 	"fmt"
-	"golang.org/x/exp/shiny/driver/gldriver"
 	"log"
 	"math/rand"
 	"time"
 
 	"github.com/real-time-footfall-analysis/rtfa-simulation/geometry"
 	"github.com/real-time-footfall-analysis/rtfa-simulation/utils"
-	"golang.org/x/exp/shiny/screen"
 )
 
 func main() {
@@ -31,24 +29,11 @@ func main() {
 	}
 	fmt.Println()
 
-	gldriver.Main(func(s screen.Screen) {
-
-		r := SetupRender(s, w.GetImage(), &w.Regions)
-		defer r.Release()
-
-		go simulate(&w, &r)
-
-		for r.Step() {
-		}
-		fmt.Println("EOL")
-
-	})
-
-	fmt.Println("Bottom")
+	simulate(&w)
 
 }
 
-func simulate(world *State, r *RenderState) {
+func simulate(world *State) {
 	//time.Sleep(5 * time.Second)
 
 	steps := 0
@@ -108,10 +93,6 @@ func simulate(world *State, r *RenderState) {
 			// Process them as they come in
 			result := <-channel
 			processMovementsForGroup(world, result)
-		}
-
-		if steps%1 == 0 {
-			r.SendEvent(UpdateEvent{world})
 		}
 		//fmt.Println("people: ", people)
 		steps++
