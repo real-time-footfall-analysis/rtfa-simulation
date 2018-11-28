@@ -1,6 +1,7 @@
 package main
 
 import (
+	"bufio"
 	"fmt"
 	"golang.org/x/exp/shiny/driver/gldriver"
 	"golang.org/x/exp/shiny/screen"
@@ -13,9 +14,11 @@ import (
 	"image"
 	"image/color"
 	"image/draw"
+	"image/png"
 	"log"
 	"math"
 	"math/rand"
+	"os"
 )
 
 type RenderState struct {
@@ -240,6 +243,8 @@ func drawRegionInBuffer(r *RenderState, x, y float64, c color.Color, rad int) {
 	}
 }
 
+var tick int = 0
+
 func (r *RenderState) Redraw() {
 	// Set background
 	//r.w.Fill(r.sz.Bounds(), color.Transparent, screen.Src)
@@ -258,6 +263,43 @@ func (r *RenderState) Redraw() {
 	r.w.Draw(src2dst, r.rt, r.rt.Bounds(), screen.Over, nil)
 	r.w.Draw(src2dst, r.t, r.t.Bounds(), screen.Over, nil)
 	r.w.Publish()
+
+	tick++
+	if tick%500 != 0 {
+		return
+	}
+	log.Println("redraw")
+	f, err := os.Create("/tmp/dat3.png")
+	if err != nil {
+		log.Println("error0", err)
+		err = os.Remove("/tmp/dat3.png")
+		if err != nil {
+			log.Fatalln("error1", err)
+		}
+		f, err = os.Create("/tmp/dat3.png")
+		if err != nil {
+			log.Fatalln("error2", err)
+		}
+
+	}
+	defer f.Close()
+
+	w := bufio.NewWriter(f)
+	bi := r.bb.RGBA().SubImage(r.bb.Bounds())
+	i := r.b.RGBA().SubImage(r.b.Bounds())
+	ri := r.rb.RGBA().SubImage(r.rb.Bounds())
+	newImage := image.NewRGBA(image.Rect(0, 0, r.b.Bounds().Dx(), r.b.Bounds().Dy()))
+	draw2.NearestNeighbor.Scale(newImage, newImage.Bounds(), bi, bi.Bounds(), draw2.Src, nil)
+	draw2.NearestNeighbor.Scale(newImage, newImage.Bounds(), ri, ri.Bounds(), draw2.Over, nil)
+	draw2.NearestNeighbor.Scale(newImage, newImage.Bounds(), i, i.Bounds(), draw2.Over, nil)
+	err = png.Encode(w, newImage)
+	if err != nil {
+		log.Fatalln("error3", err)
+	}
+	err = w.Flush()
+	if err != nil {
+		log.Fatalln("error4", err)
+	}
 
 }
 
