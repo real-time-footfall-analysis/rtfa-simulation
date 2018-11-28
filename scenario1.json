@@ -1,11 +1,18 @@
 {"start": "2018-11-23T07:01:00.000Z", "end":"2018-11-23T19:00:00.000Z",
-  "entranceX": 1, "entranceY":1, "totalPeople": 100, "totalGroups": 100,
+  "entranceX": 1, "entranceY":1, "totalPeople": 1000, "totalGroups": 1000,
   "destinations":[
     {"x":170, "y":  110, "regionId": 0, "comment":" use either x,y or regionID to use an accosiated regionID's position*",
       "name": "stage1", "events": [
-        {"name": "welcome", "start": "2018-11-23T07:00:00.000Z", "end": "2018-11-23T08:00:00.000Z", "popularity": 0.5},
-        {"name": "band1", "start": "2018-11-23T08:30:00.000Z", "end": "2018-11-23T10:00:00.000Z", "popularity": 0.7},
-        {"name": "band2", "start": "2018-11-23T10:30:00.000Z", "end": "2018-11-23T12:00:00.000Z", "popularity": 0.7}
+      {"name": "welcome", "start": "2018-11-23T07:00:00.000Z", "end": "2018-11-23T08:00:00.000Z", "popularity": 0.5},
+      {"name": "band1", "start": "2018-11-23T08:30:00.000Z", "end": "2018-11-23T10:00:00.000Z", "popularity": 0.7},
+      {"name": "band2", "start": "2018-11-23T10:30:00.000Z", "end": "2018-11-23T12:00:00.000Z", "popularity": 0.6}
+    ]
+    },
+    {"x":170, "y":  10, "regionId": 0, "comment":" use either x,y or regionID to use an accosiated regionID's position*",
+      "name": "stage2", "events": [
+        {"name": "band3", "start": "2018-11-23T08:30:00.000Z", "end": "2018-11-23T10:00:00.000Z", "popularity": 0.7},
+        {"name": "band4", "start": "2018-11-23T10:30:00.000Z", "end": "2018-11-23T12:00:00.000Z", "popularity": 0.7},
+        {"name": "band5", "start": "2018-11-23T14:30:00.000Z", "end": "2018-11-23T17:00:00.000Z", "popularity": 0.3}
       ]
     },
     {"x":50, "y":  55, "regionId": 0, "comment":" use either x,y or regionID to use an accosiated regionID's position*",
