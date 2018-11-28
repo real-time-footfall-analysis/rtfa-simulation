@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"log"
 	"math/rand"
 	"time"
 
@@ -12,10 +13,10 @@ import (
 )
 
 func main() {
-	w := LoadFromImage("test6.png")
+	w := LoadFromImage("test5.png")
 	w.LoadRegions("testRegions.json", 51.506478, -0.172219)
-	w.time = time.Now()
 	w.BulkSend = true
+	w.LoadScenario("scenario1.json")
 
 	fmt.Println("state size:", w.GetWidth(), w.GetHeight())
 	for y := 0; y < w.GetHeight(); y++ {
@@ -48,115 +49,89 @@ func main() {
 
 func simulate(world *State, r *RenderState) {
 	//time.Sleep(5 * time.Second)
-	ticker := time.NewTicker(10 * time.Millisecond)
-	go func() {
-		people := 0
-		steps := 0
 
-		// Add random people
-		group_count := 2000
+	steps := 0
 
-		groups := make([]*Group, group_count)
-		for i, _ := range groups {
-			groups[i] = &Group{
-				Individuals: make([]*Individual, 0),
-			}
+	groups := make([]*Group, world.scenario.TotalGroups)
+	for i, _ := range groups {
+		groups[i] = &Group{
+			Individuals: make([]*Individual, 0),
 		}
-		for i := 0; i < 10000; i++ {
+	}
+
+	InitFlowFields()
+
+	for _, dest := range world.scenario.Destinations {
+		err := world.GenerateFlowField(Destination{
+			X: dest.X,
+			Y: dest.Y,
+		})
+		if err != nil {
+			log.Fatal("cannot make flow field for", dest)
+		}
+	}
+
+	// Set up parallel processing channels
+	channels := make([]chan map[*Individual]utils.OptionalFloat64, 0)
+	for i := 0; i < len(groups); i++ {
+		channel := make(chan map[*Individual]utils.OptionalFloat64)
+		channels = append(channels, channel)
+	}
+
+	var avg float64 = -1
+	for world.time.Before(world.scenario.End) {
+		t := time.Now()
+
+		// add more people until someone doesn't fit
+		for i := world.peopleAdded; i < world.scenario.TotalPeople; i++ {
 			indiv := world.AddRandom()
-			groupIndex := rand.Intn(group_count)
+			if indiv == nil {
+				break
+			}
+			groupIndex := rand.Intn(world.scenario.TotalGroups)
 			groups[groupIndex].Individuals = append(groups[groupIndex].Individuals, indiv)
-			people++
+			world.peopleAdded++
 		}
 
-		InitFlowFields()
+		//fmt.Println(steps, "Tick at", t)
 
-		world.GenerateFlowField(Destination{
-			X: 20,
-			Y: 180,
-		})
+		// world.MoveAll()
 
-		world.GenerateFlowField(Destination{
-			X: 180,
-			Y: 20,
-		})
-
-		world.GenerateFlowField(Destination{
-			X: 180,
-			Y: 180,
-		})
-
-		world.GenerateFlowField(Destination{
-			X: 20,
-			Y: 20,
-		})
-
-		world.GenerateFlowField(Destination{
-			X: 100,
-			Y: 100,
-		})
-
-		world.GenerateFlowField(Destination{
-			X: 20,
-			Y: 130,
-		})
-		//world.PrintDistances(Destination{
-		//	X: 820,
-		//	Y: 520,
-		//})
-		//world.PrintDirections(Destination{
-		//	X: 820,
-		//	Y: 520,
-		//})
-
-		// Set up parallel processing channels
-		channels := make([]chan map[*Individual]utils.OptionalFloat64, 0)
-		for i := 0; i < len(groups); i++ {
-			channel := make(chan map[*Individual]utils.OptionalFloat64)
-			channels = append(channels, channel)
+		// Get the desired positions for each of the individuals in each group in parallel
+		for i, group := range groups {
+			go group.Next(channels[i], world)
 		}
 
-		var avg float64 = -1
-		for t := range ticker.C {
-
-			//fmt.Println(steps, "Tick at", t)
-
-			// world.MoveAll()
-
-			// Get the desired positions for each of the individuals in each group in parallel
-			for i, group := range groups {
-				go group.Next(channels[i], world)
-			}
-
-			// Process each group as they come
-			for _, channel := range channels {
-				// Process them as they come in
-				result := <-channel
-				processMovementsForGroup(world, result)
-			}
-
-			if steps%1 == 0 {
-				r.SendEvent(UpdateEvent{world})
-			}
-			//fmt.Println("people: ", people)
-			steps++
-			world.time.Add(time.Second)
-			geometry.FlipTick()
-			dt := time.Since(t).Nanoseconds()
-			if avg < 0 {
-				avg = float64(dt)
-			} else {
-				avg = 0.9*avg + 0.1*float64(dt)
-			}
-
-			if steps%50 == 0 {
-				fmt.Println("average tick time: ", avg/1000000000)
-			}
-
+		// Process each group as they come
+		for _, channel := range channels {
+			// Process them as they come in
+			result := <-channel
+			processMovementsForGroup(world, result)
 		}
-	}()
-	time.Sleep(60 * time.Second)
-	ticker.Stop()
+
+		if steps%1 == 0 {
+			r.SendEvent(UpdateEvent{world})
+		}
+		//fmt.Println("people: ", people)
+		steps++
+		world.TickTime()
+		geometry.FlipTick()
+
+		// calculate simulation speed analytics
+		dt := time.Since(t).Nanoseconds()
+		if avg < 0 {
+			avg = float64(dt)
+		} else {
+			avg = 0.9*avg + 0.1*float64(dt)
+		}
+
+		if steps%500 == 0 {
+			fmt.Println("average tick time: ", avg/1000000000)
+			fmt.Println("sim time: ", world.time)
+		}
+
+	}
+
 	fmt.Println("Ticker stopped")
 	SendBulk()
 }

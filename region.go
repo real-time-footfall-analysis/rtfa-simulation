@@ -97,7 +97,6 @@ func UpdateServer(regions *[]Region, individual *Individual, time time.Time, bul
 				} else {
 					sendUpdate(&u)
 				}
-				log.Println(individual.UUID, " entering ", r.ID)
 
 			}
 		} else {
@@ -112,7 +111,6 @@ func UpdateServer(regions *[]Region, individual *Individual, time time.Time, bul
 				} else {
 					sendUpdate(&u)
 				}
-				log.Println(individual.UUID, " leaving ", r.ID, " ------------")
 			}
 		}
 

@@ -224,7 +224,6 @@ func drawRegionInBuffer(r *RenderState, x, y float64, c color.Color, rad int) {
 	for px := -pr; px < pr; px++ {
 		for py := -pr; py < pr; py++ {
 			if px*px+py*py < pr*pr {
-				fmt.Println("Setting ", ix+px, iy+py)
 				r.rb.RGBA().Set(ix+px, iy+py, c)
 			}
 		}

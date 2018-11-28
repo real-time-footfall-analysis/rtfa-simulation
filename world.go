@@ -32,15 +32,19 @@ func (t *Tile) SetWalkable(b bool) {
 }
 
 type State struct {
-	tiles      [][]Tile
-	width      int
-	height     int
-	background image.Image
-	Regions    []Region
-	TileWidth  int // TODO: do we need this?
-	allPeople  []*Individual
-	time       time.Time
-	BulkSend   bool
+	tiles         [][]Tile
+	width         int
+	height        int
+	background    image.Image
+	Regions       []Region
+	TileWidth     int // TODO: do we need this?
+	allPeople     []*Individual
+	time          time.Time
+	BulkSend      bool
+	peopletoAdd   int
+	scenario      Scenario
+	peopleAdded   int
+	peopleCurrent int
 }
 
 func (w *State) GetWidth() int {
@@ -73,161 +77,9 @@ var counter int = 0
 
 func (w *State) AddRandom() *Individual {
 
-	set1 := []Likelihood{
-		{
-			ProbabilityFunctions: []func(int) bool{
-				func(tick int) bool {
-					if tick > 600 {
-						return false
-					}
-					return true
-				},
-			},
-			Probabilities: []float64{
-				1,
-			},
-			Destination: Destination{
-				X: 20,
-				Y: 20,
-			},
-		},
-		{
-			ProbabilityFunctions: []func(int) bool{
-				func(tick int) bool {
-					if tick > 600 {
-						return true
-					}
-					return false
-				},
-			},
-			Probabilities: []float64{
-				1,
-			},
-			Destination: Destination{
-				X: 180,
-				Y: 180,
-			},
-		},
-	}
-
-	set2 := []Likelihood{
-		{
-			ProbabilityFunctions: []func(int) bool{
-				func(tick int) bool {
-					if tick > 450 {
-						return false
-					}
-					return true
-				},
-			},
-			Probabilities: []float64{
-				1,
-			},
-			Destination: Destination{
-				X: 100,
-				Y: 100,
-			},
-		},
-		{
-			ProbabilityFunctions: []func(int) bool{
-				func(tick int) bool {
-					if tick > 450 {
-						return true
-					}
-					return false
-				},
-			},
-			Probabilities: []float64{
-				1,
-			},
-			Destination: Destination{
-				X: 20,
-				Y: 20,
-			},
-		},
-	}
-
-	set3 := []Likelihood{
-		{
-			ProbabilityFunctions: []func(int) bool{
-				func(tick int) bool {
-					if tick > 500 {
-						return false
-					}
-					return true
-				},
-			},
-			Probabilities: []float64{
-				1,
-			},
-			Destination: Destination{
-				X: 180,
-				Y: 20,
-			},
-		},
-		{
-			ProbabilityFunctions: []func(int) bool{
-				func(tick int) bool {
-					if tick > 500 {
-						return true
-					}
-					return false
-				},
-			},
-			Probabilities: []float64{
-				1,
-			},
-			Destination: Destination{
-				X: 20,
-				Y: 20,
-			},
-		},
-	}
-
-	set4 := []Likelihood{
-		{
-			ProbabilityFunctions: []func(int) bool{
-				func(tick int) bool {
-					if tick > 120 {
-						return false
-					}
-					return true
-				},
-			},
-			Probabilities: []float64{
-				1,
-			},
-			Destination: Destination{
-				X: 180,
-				Y: 20,
-			},
-		},
-		{
-			ProbabilityFunctions: []func(int) bool{
-				func(tick int) bool {
-					if tick > 120 {
-						return true
-					}
-					return false
-				},
-			},
-			Probabilities: []float64{
-				1,
-			},
-			Destination: Destination{
-				X: 20,
-				Y: 130,
-			},
-		},
-	}
-
-	sets := [][]Likelihood{
-		set1, set2, set3, set4,
-	}
-
-	for {
-		x := rand.Intn(w.GetWidth()-2) + 1
-		y := rand.Intn(w.GetHeight()-2) + 1
+	for i := 0; i < 100; i++ {
+		x := w.scenario.EntranceX
+		y := w.scenario.EntranceY
 		xf := rand.Float64()
 		yf := rand.Float64()
 		tile := w.GetTile(x, y)
@@ -235,13 +87,13 @@ func (w *State) AddRandom() *Individual {
 			r, g, b := color.YCbCrToRGB(uint8(100), uint8(rand.Intn(256)), uint8(rand.Intn(256)))
 			c := color.RGBA{r, g, b, 255}
 
-			randSetIndex := rand.Intn(4)
+			//randSetIndex := rand.Intn(4)
 			person := Individual{
 				Loc:    geometry.NewPoint(float64(x)+xf, float64(y)+yf),
 				Colour: c, UUID: "SimBot-" + strconv.Itoa(counter),
 				Tick:        0,
 				StepSize:    0.2,
-				Likelihoods: sets[randSetIndex],
+				Likelihoods: w.scenario.GenerateRandomPersonality(),
 				RegionIds:   make(map[int32]bool, len(w.Regions)),
 			}
 			tile.People = append(tile.People, &person)
@@ -250,6 +102,7 @@ func (w *State) AddRandom() *Individual {
 			return &person
 		}
 	}
+	return nil
 }
 
 func (w *State) MoveIndividual(person *Individual, theta float64, distance float64) {
@@ -298,5 +151,10 @@ func (w *State) MoveAll() {
 		w.MoveIndividual(p, theta, distance)
 
 	}
+
+}
+
+func (w *State) TickTime() {
+	w.time = w.time.Add(time.Second)
 
 }

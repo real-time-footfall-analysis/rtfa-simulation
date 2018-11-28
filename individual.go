@@ -4,15 +4,16 @@ import (
 	"image/color"
 	"math"
 	"math/rand"
+	"time"
 
 	"github.com/real-time-footfall-analysis/rtfa-simulation/geometry"
 	"github.com/real-time-footfall-analysis/rtfa-simulation/utils"
 )
 
 type Likelihood struct {
-	Destination          Destination      // If this likelihood is picked - where should we go
-	ProbabilityFunctions []func(int) bool // Array of mutually exclusive functions to return "true" when we should use the corresponding probability
-	Probabilities        []float64        // Array of probabilities. MUST be same cardinality as the above.
+	Destination          Destination            // If this likelihood is picked - where should we go
+	ProbabilityFunctions []func(time.Time) bool // Array of mutually exclusive functions to return "true" when we should use the corresponding probability
+	Probabilities        []float64              // Array of probabilities. MUST be same cardinality as the above.
 }
 
 type Individual struct {
@@ -26,18 +27,19 @@ type Individual struct {
 	LastMoveDist float64
 }
 
-func (l *Likelihood) ProbabilityAtTick(tick int) float64 {
+func (l *Likelihood) ProbabilityAtTick(time time.Time) float64 {
+	bestProb := 0.0
 	for i, useProb := range l.ProbabilityFunctions {
-		if useProb(tick) {
-			return l.Probabilities[i]
+		if useProb(time) && l.Probabilities[i] > bestProb {
+			bestProb = l.Probabilities[i]
 		}
 	}
-	return 0
+	return bestProb
 }
 
-func (i *Individual) Next() Destination {
+func (i *Individual) Next(w *State) Destination {
 	i.Tick += 1
-	return i.requestedDestination()
+	return i.requestedDestination(w)
 }
 
 type ProbabilityPair struct {
@@ -45,12 +47,12 @@ type ProbabilityPair struct {
 	dest Destination
 }
 
-func (a *Individual) requestedDestination() Destination {
+func (a *Individual) requestedDestination(w *State) Destination {
 	// Get all of the likelihood probabilities
 	var sum float64 = 0
 	probs := make([]ProbabilityPair, 0)
 	for _, likelihood := range a.Likelihoods {
-		prob := likelihood.ProbabilityAtTick(a.Tick)
+		prob := likelihood.ProbabilityAtTick(w.time)
 		sum += prob
 		probs = append(probs, ProbabilityPair{
 			prob: prob,

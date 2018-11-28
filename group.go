@@ -15,7 +15,7 @@ func (g *Group) Next(channel chan map[*Individual]utils.OptionalFloat64, w *Stat
 
 	// Get each destination that someone would like to go to, and tally them up
 	for _, individual := range g.Individuals {
-		dest := individual.Next()
+		dest := individual.Next(w)
 
 		val, ok := dests[dest]
 		valSet := 0
