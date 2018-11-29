@@ -82,13 +82,11 @@ func (w *State) PrintDirections(destination Destination) {
 		for j := 0; j < w.GetWidth(); j++ {
 
 			tile := w.GetTile(j, i)
-
-			if tile.Dists[destination] == 0 {
-				fmt.Printf("X")
-			} else if !tile.Walkable() {
-				fmt.Print("#")
+			angle, present := tile.Directions[destination].Value()
+			if !present || angle == math.Inf(1) {
+				fmt.Print("## ")
 			} else {
-				fmt.Print(tile.Directions[destination])
+				fmt.Printf("%02.f ", angle)
 			}
 
 		}
@@ -121,6 +119,27 @@ func (w *State) PrintDistances(destination Destination) {
 
 }
 
+func (w *State) PrintDestTiles(destination Destination) {
+
+	for i := 0; i < w.GetHeight(); i++ {
+		for j := 0; j < w.GetWidth(); j++ {
+
+			tile := w.GetTile(j, i)
+
+			if tile.DestTile == nil {
+				fmt.Print(" #### ")
+			} else {
+				fmt.Printf("[%d, %d]", tile.DestTile.X, tile.DestTile.Y)
+			}
+
+		}
+		fmt.Println()
+
+	}
+	fmt.Println()
+
+}
+
 // Generates the flow field to the destination
 func (w *State) GenerateFlowField(destination Destination) error {
 
@@ -133,21 +152,16 @@ func (w *State) GenerateFlowField(destination Destination) error {
 
 // Assuming that distance information has been filled in by dijkstra,
 // calculate the directions needed
-func (w *State) computeDirections(dest Destination) error {
+func (w *State) computeDirections(dest Destination) {
 
 	for i := 0; i < w.GetWidth(); i++ {
 		for j := 0; j < w.GetHeight(); j++ {
-			err := computeDirectionForTile(i, j, dest, w)
-			if err != nil {
-				return err
-			}
+			computeDirectionForTile(i, j, dest, w)
 		}
 	}
 
-	return nil
-
 }
-func computeDirectionForTile(x int, y int, dest Destination, w *State) error {
+func computeDirectionForTile(x int, y int, dest Destination, w *State) {
 
 	tile := w.GetTile(x, y)
 
@@ -158,7 +172,8 @@ func computeDirectionForTile(x int, y int, dest Destination, w *State) error {
 	// Skip walls
 	if !tile.Walkable() {
 		tile.Directions[dest] = utils.OptionalFloat64WithEmptyValue()
-		return nil
+		tile.DestTile = nil
+		return
 	}
 
 	// Find the next as-the-crow-flies destination tile
@@ -175,10 +190,12 @@ func computeDirectionForTile(x int, y int, dest Destination, w *State) error {
 		stepY = -1
 	} else if !validDownCoord && w.GetTile(destX, destY + 1).Dists[dest] < tile.Dists[dest] {
 		stepY = 1
-	} else if w.GetTile(destX, destY + 1).Dists[dest] < w.GetTile(destX, destY - 1).Dists[dest] &&
+	} else if validUpCoord && validDownCoord &&
+		w.GetTile(destX, destY + 1).Dists[dest] < w.GetTile(destX, destY - 1).Dists[dest] &&
 		w.GetTile(destX, destY + 1).Dists[dest] < tile.Dists[dest] {
 		stepY = 1
-	} else if w.GetTile(destX, destY - 1).Dists[dest] < w.GetTile(destX, destY + 1).Dists[dest] &&
+	} else if validUpCoord && validDownCoord &&
+		w.GetTile(destX, destY - 1).Dists[dest] < w.GetTile(destX, destY + 1).Dists[dest] &&
 		w.GetTile(destX, destY - 1).Dists[dest] < tile.Dists[dest] {
 		stepY = -1
 	}
@@ -186,7 +203,7 @@ func computeDirectionForTile(x int, y int, dest Destination, w *State) error {
 	// Find how far we have to go in the y-axis
 	if stepY != 0 {
 		for newDestY := destY + stepY;
-			w.validCoord(destX, newDestY) && w.GetTile(destX, newDestY).Walkable();
+			w.validCoord(destX, newDestY) && w.GetTile(destX, newDestY).Walkable() && w.GetTile(destX, newDestY).Dists[dest] < w.GetTile(destX, destY).Dists[dest];
 			newDestY += stepY {
 			destY = newDestY
 		}
@@ -202,10 +219,12 @@ func computeDirectionForTile(x int, y int, dest Destination, w *State) error {
 		stepX = -1
 	} else if !validLeftCoord && w.GetTile(destX + 1, destY).Dists[dest] < w.GetTile(destX, destY).Dists[dest] {
 		stepX = 1
-	} else if w.GetTile(destX + 1, destY).Dists[dest] < w.GetTile(destX - 1, destY).Dists[dest] &&
+	} else if validLeftCoord && validRightCoord &&
+		w.GetTile(destX + 1, destY).Dists[dest] < w.GetTile(destX - 1, destY).Dists[dest] &&
 		w.GetTile(destX + 1, destY).Dists[dest] < w.GetTile(destX, destY).Dists[dest] {
 		stepX = 1
-	} else if w.GetTile(destX - 1, destY).Dists[dest] < w.GetTile(destX + 1, destY).Dists[dest] &&
+	} else if validLeftCoord && validRightCoord &&
+		w.GetTile(destX - 1, destY).Dists[dest] < w.GetTile(destX + 1, destY).Dists[dest] &&
 		w.GetTile(destX - 1, destY).Dists[dest] < w.GetTile(destX, destY).Dists[dest] {
 		stepX = -1
 	}
@@ -213,15 +232,21 @@ func computeDirectionForTile(x int, y int, dest Destination, w *State) error {
 	// Find out how far we have to go in the x-axis
 	if stepX != 0 {
 		for newDestX := destX + stepX;
-			w.validCoord(newDestX, destY) && w.GetTile(newDestX, destY).Walkable() && w.noWallsInCol(destX, y, destY);
-		newDestX += stepX {
+			w.validCoord(newDestX, destY) && w.GetTile(newDestX, destY).Walkable() && w.GetTile(newDestX, destY).Dists[dest] < w.GetTile(destX, destY).Dists[dest] && w.noWallsInCol(destX, y, destY);
+			newDestX += stepX {
 			destX = newDestX
 		}
 	}
 
-	// TODO: compute the angle we should travel in
+	// TODO: Follow this angle UNTIL the difference between the
+	// suggested angle at the square you are at and the current angle is greater than some threshold
+	// Add randomness to the angle chosen - but take this into account when using the threshold^
 
-	return nil
+	tile.DestTile = &Destination{
+		X: destX,
+		Y: destY,
+	}
+	tile.Directions[dest] = utils.OptionalFloat64WithValue(math.Atan2(float64(destY - y), float64(destX - x)))
 
 }
 
@@ -247,6 +272,8 @@ func (w *State) noWallsInCol(x, y1, y2 int) bool {
 	return true
 }
 
+// Converts dX, dY to a direction:
+// flipping the y axis
 func deltaToDirection(dX, dY int) Direction {
 
 	if dX == -1 && dY == -1 {
