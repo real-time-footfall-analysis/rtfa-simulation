@@ -17,8 +17,9 @@ func main() {
 	w.LoadRegions("testRegions.json", 51.506478, -0.172219)
 	w.BulkSend = true
 	w.LoadScenario("scenario1.json")
+	log.Println("loaded scenario")
 
-	fmt.Println("state size:", w.GetWidth(), w.GetHeight())
+	/*fmt.Println("state size:", w.GetWidth(), w.GetHeight())
 	for y := 0; y < w.GetHeight(); y++ {
 		for x := 0; x < w.GetWidth(); x++ {
 			if w.GetTile(x, y).Walkable() {
@@ -29,7 +30,7 @@ func main() {
 		}
 		fmt.Println()
 	}
-	fmt.Println()
+	fmt.Println()*/
 
 	driver.Main(func(s screen.Screen) {
 		r := SetupRender(s, w.GetImage(), &w.Regions)
@@ -49,6 +50,7 @@ func main() {
 
 func simulate(world *State, r *RenderState) {
 	//time.Sleep(5 * time.Second)
+	log.Println("simulation starting")
 
 	steps := 0
 
@@ -59,8 +61,8 @@ func simulate(world *State, r *RenderState) {
 		}
 	}
 
+	log.Println("Flow fields starting")
 	InitFlowFields()
-
 	for _, dest := range world.scenario.Destinations {
 		err := world.GenerateFlowField(Destination{
 			X: dest.X,
@@ -70,6 +72,7 @@ func simulate(world *State, r *RenderState) {
 			log.Fatal("cannot make flow field for", dest)
 		}
 	}
+	log.Println("Flow fields done")
 
 	// Set up parallel processing channels
 	channels := make([]chan map[*Individual]utils.OptionalFloat64, 0)
