@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"golang.org/x/image/colornames"
 	"image"
 	"image/color"
 	_ "image/png"
@@ -28,10 +29,21 @@ func LoadFromImage(path string) State {
 	for x := 0; x < world.width; x++ {
 		world.tiles[x] = make([]Tile, world.height)
 		for y := 0; y < world.height; y++ {
-			walk := walkable(i.At(x, y))
+			c := i.At(x, y)
+			if !(sameColour(color.White, c) || sameColour(color.Black, c)) {
+				log.Println("colour", c)
+			}
+			walk := walkable(c)
 			world.tiles[x][y].walkable = walk
 			world.tiles[x][y].X = x
 			world.tiles[x][y].Y = y
+			world.tiles[x][y].blockedNorth = blockedNorth(c)
+			world.tiles[x][y].blockedEast = blockedEast(c)
+			world.tiles[x][y].blockedSouth = blockedSouth(c)
+			world.tiles[x][y].blockedWest = blockedWest(c)
+			if world.tiles[x][y].blockedNorth || world.tiles[x][y].blockedEast || world.tiles[x][y].blockedSouth || world.tiles[x][y].blockedWest {
+				log.Println("BLOCKING")
+			}
 		}
 	}
 	fmt.Println("tiles size", len(world.tiles), len(world.tiles[0]))
@@ -39,7 +51,26 @@ func LoadFromImage(path string) State {
 	return world
 }
 
+func sameColour(a, b color.Color) bool {
+	ar, ag, ab, aa := a.RGBA()
+	br, bg, bb, ba := b.RGBA()
+	return ar == br && ag == bg && ab == bb && aa == ba
+}
+
 func walkable(colour color.Color) bool {
 	r, g, b, a := colour.RGBA()
-	return r == 0xffff && g == 0xffff && b == 0xffff && a == 0xffff
+	return !(r == 0x0000 && g == 0x0000 && b == 0x0000 && a == 0xffff)
+}
+
+func blockedNorth(c color.Color) bool {
+	return sameColour(c, color.RGBA{R: 0, G: 0, B: 255, A: 255})
+}
+func blockedEast(c color.Color) bool {
+	return sameColour(c, colornames.Yellow)
+}
+func blockedSouth(c color.Color) bool {
+	return sameColour(c, color.RGBA{R: 251, G: 0, B: 7, A: 255})
+}
+func blockedWest(c color.Color) bool {
+	return sameColour(c, colornames.Green)
 }

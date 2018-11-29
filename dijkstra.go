@@ -42,7 +42,7 @@ func FindShortestPath(w *State, destination Destination) error {
 		}
 
 		// Relax each neighbouring tile
-		neighbours := getValidNeighbouringTiles(tile.X, tile.Y, w)
+		neighbours := getValidNeighbouringTiles(tile, w)
 		for _, neighbour := range neighbours {
 			if (tile.Dists[destination] + 1) < neighbour.Dists[destination] {
 				neighbour.Dists[destination] = tile.Dists[destination] + 1
@@ -105,11 +105,21 @@ func initQueue(w *State, dest Destination) (*pq.PriorityQueue, error) {
 
 }
 
-func getValidNeighbouringTiles(x, y int, w *State) []*Tile {
+func getValidNeighbouringTiles(t *Tile, w *State) []*Tile {
+	x := t.X
+	y := t.Y
 
 	tiles := make([]*Tile, 0)
 
 	for _, delta := range deltas {
+
+		if (t.blockedNorth && delta == pairInts{0, 1}) ||
+			(t.blockedEast && delta == pairInts{1, 0}) ||
+			(t.blockedSouth && delta == pairInts{0, -1}) ||
+			(t.blockedWest && delta == pairInts{-1, 0}) {
+			log.Println("skipping tile")
+			continue
+		}
 
 		newX := x + delta.fst
 		newY := y + delta.snd

@@ -25,9 +25,11 @@ type Individual struct {
 	UUID         string         // UUID of this actor for sending updates
 	Colour       color.Color    // colour to render this individual
 	LastMoveDist float64
+	MoveDistAvg  float64     /// running avg of movements
 	CurrentOri   float64     // Current orientation
 	CurrentSway  float64     // Current sway
 	target       Destination // current target destination
+	leaveTime    time.Time   // time to leave current place
 }
 
 const (
@@ -45,8 +47,43 @@ func (l *Likelihood) ProbabilityAtTick(time time.Time) float64 {
 }
 
 func (i *Individual) Next(w *State) Destination {
-	i.Tick += 1
-	return i.requestedDestination(w)
+
+	nilDest := Destination{}
+	if i.target == nilDest {
+		i.target = i.requestedDestination(w)
+		return i.target
+	}
+	x, y := i.Loc.GetXY()
+	dx := float64(i.target.X) - x
+	dy := float64(i.target.Y) - y
+	if dx*dx+dy*dy < i.target.R*i.target.R {
+		// inside target
+		if i.leaveTime.IsZero() {
+			dest := w.scenario.GetDestination(i.target)
+			if dest.MeanTime == 0 {
+				event := dest.NextEventToEnd(w.time)
+				if event == nil {
+					i.leaveTime = w.time
+				} else {
+					i.leaveTime = event.End
+				}
+			} else {
+				seconds := time.Duration((rand.NormFloat64()*dest.VarTime)+dest.MeanTime) * time.Second
+				i.leaveTime = w.time.Add(seconds)
+			}
+		}
+		if w.time.Before(i.leaveTime) {
+			return i.target
+		} else {
+			i.leaveTime = time.Time{}
+			i.target = i.requestedDestination(w)
+			return i.target
+		}
+	} else {
+		// outside target
+		return i.target
+	}
+
 }
 
 type ProbabilityPair struct {
@@ -87,6 +124,17 @@ func (a *Individual) requestedDestination(w *State) Destination {
 }
 
 func (i *Individual) DirectionForDestination(dest Destination, w *State) utils.OptionalFloat64 {
+
+	x, y := i.Loc.GetXY()
+	dx := float64(i.target.X) - x
+	dy := float64(i.target.Y) - y
+	if dx*dx+dy*dy < i.target.R*i.target.R {
+		// inside the area
+		if rand.Float64() < 0.4 {
+			return utils.OptionalFloat64WithValue((rand.Float64() - 0.5) * 2 * math.Pi)
+		}
+	}
+
 	tile := w.GetTileHighRes(i.Loc.GetXY())
 	if tile == nil {
 		return utils.OptionalFloat64WithEmptyValue()

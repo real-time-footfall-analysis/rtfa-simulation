@@ -21,6 +21,11 @@ type Tile struct {
 	DestTile   *Destination // TODO: remove
 	X          int
 	Y          int
+
+	blockedNorth bool
+	blockedEast  bool
+	blockedSouth bool
+	blockedWest  bool
 }
 
 func (t *Tile) Walkable() bool {
@@ -119,6 +124,7 @@ func (w *State) MoveIndividual(person *Individual, theta float64, distance float
 		distThing := (nx-cx)*(nx-cx) + (ny-cy)*(ny-cy)
 		dist := math.Sqrt(distThing)
 		person.LastMoveDist = dist
+		person.MoveDistAvg = (person.MoveDistAvg * 0.8) + (dist * 0.2)
 		person.Loc.SetXY(nx, ny)
 		if math.Floor(nx) == math.Floor(cx) &&
 			math.Floor(ny) == math.Floor(cy) {
