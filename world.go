@@ -9,6 +9,7 @@ import (
 	"math/rand"
 	"strconv"
 	"time"
+	"github.com/real-time-footfall-analysis/rtfa-simulation/utils"
 )
 
 type Tile struct {
@@ -16,7 +17,8 @@ type Tile struct {
 	People     []*Individual
 	HitCount   int
 	Dists      map[Destination]float64 // Used internally for dijkstra
-	Directions map[Destination]Direction
+	Directions map[Destination]utils.OptionalFloat64
+	DestTile *Destination // TODO: remove
 	X          int
 	Y          int
 }
