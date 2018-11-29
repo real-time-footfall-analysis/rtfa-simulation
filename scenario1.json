@@ -1,7 +1,7 @@
 {"start": "2018-11-23T07:00:00.000Z", "end":"2018-11-23T19:00:00.000Z",
-  "entranceX": 2600, "entranceY":1100, "totalPeople": 1000, "totalGroups": 100,
+  "entranceX": 650, "entranceY":275, "totalPeople": 10000, "totalGroups": 5000,
   "exit":{
-    "x":1459, "y": 1280, "regionId": 0, "comment":" use either x,y or regionID to use an accosiated regionID's position*",
+    "x":365, "y": 300, "regionId": 0, "comment":" use either x,y or regionID to use an accosiated regionID's position*",
     "name": "exit gate", "events": [
       {"name": "General Exit", "start": "2018-11-23T08:00:00.000Z", "end": "2018-11-23T19:00:00.000Z", "popularity": 0.1},
       {"name": "Home Time", "start": "2018-11-23T16:30:00.000Z", "end": "2018-11-23T19:00:00.000Z", "popularity": 0.3},
@@ -42,7 +42,7 @@
       {"name": "Late Rush", "start": "2018-11-23T17:00:00.000Z", "end": "2018-11-23T18:00:00.000Z", "popularity": 0.6}
     ]
     },
-    {"x":1855, "y":  527, "regionId": 0, "comment":" use either x,y or regionID to use an accosiated regionID's position*",
+    {"x":465, "y":  133, "regionId": 0, "comment":" use either x,y or regionID to use an accosiated regionID's position*",
       "name": "Food Court", "events": [
       {"name": "General Food", "start": "2018-11-23T07:00:00.000Z", "end": "2018-11-23T18:00:00.000Z", "popularity": 0.1},
       {"name": "Breakfast", "start": "2018-11-23T07:30:00.000Z", "end": "2018-11-23T10:00:00.000Z", "popularity": 0.1},

@@ -13,7 +13,7 @@ import (
 )
 
 func main() {
-	w := LoadFromImage("hyde_park.png")
+	w := LoadFromImage("hyde_park_quarter.png")
 	w.LoadRegions("testRegions.json", 51.506478, -0.172219)
 	w.BulkSend = true
 	w.LoadScenario("scenario1.json")
@@ -64,10 +64,13 @@ func simulate(world *State, r *RenderState) {
 	log.Println("Flow fields starting")
 	InitFlowFields()
 	for _, dest := range world.scenario.Destinations {
+		log.Println("Flow field for", dest.X, ",", dest.Y, "starting")
+
 		err := world.GenerateFlowField(Destination{
 			X: dest.X,
 			Y: dest.Y,
 		})
+		log.Println("Flow field for", dest.X, ",", dest.Y, "done")
 		if err != nil {
 			log.Fatal("cannot make flow field for", dest)
 		}

@@ -2,9 +2,10 @@ package main
 
 import (
 	"fmt"
-	_ "image/png"
-	"math"
 	"github.com/real-time-footfall-analysis/rtfa-simulation/utils"
+	_ "image/png"
+	"log"
+	"math"
 )
 
 type pairInts struct {
@@ -142,8 +143,9 @@ func (w *State) PrintDestTiles(destination Destination) {
 
 // Generates the flow field to the destination
 func (w *State) GenerateFlowField(destination Destination) error {
-
+	log.Println("find shorted path")
 	FindShortestPath(w, destination)
+	log.Println("compute directions")
 	w.computeDirections(destination)
 
 	return nil
@@ -182,58 +184,54 @@ func computeDirectionForTile(x int, y int, dest Destination, w *State) {
 
 	// Work out whether we should look up or down
 	stepY := 0
-	validUpCoord := w.validCoord(destX, destY + 1)
-	validDownCoord := w.validCoord(destX, destY - 1)
+	validUpCoord := w.validCoord(destX, destY+1)
+	validDownCoord := w.validCoord(destX, destY-1)
 	if !validUpCoord && !validDownCoord {
 		stepY = 0
-	} else if !validUpCoord && w.GetTile(destX, destY - 1).Dists[dest] < tile.Dists[dest] {
+	} else if !validUpCoord && w.GetTile(destX, destY-1).Dists[dest] < tile.Dists[dest] {
 		stepY = -1
-	} else if !validDownCoord && w.GetTile(destX, destY + 1).Dists[dest] < tile.Dists[dest] {
+	} else if !validDownCoord && w.GetTile(destX, destY+1).Dists[dest] < tile.Dists[dest] {
 		stepY = 1
 	} else if validUpCoord && validDownCoord &&
-		w.GetTile(destX, destY + 1).Dists[dest] < w.GetTile(destX, destY - 1).Dists[dest] &&
-		w.GetTile(destX, destY + 1).Dists[dest] < tile.Dists[dest] {
+		w.GetTile(destX, destY+1).Dists[dest] < w.GetTile(destX, destY-1).Dists[dest] &&
+		w.GetTile(destX, destY+1).Dists[dest] < tile.Dists[dest] {
 		stepY = 1
 	} else if validUpCoord && validDownCoord &&
-		w.GetTile(destX, destY - 1).Dists[dest] < w.GetTile(destX, destY + 1).Dists[dest] &&
-		w.GetTile(destX, destY - 1).Dists[dest] < tile.Dists[dest] {
+		w.GetTile(destX, destY-1).Dists[dest] < w.GetTile(destX, destY+1).Dists[dest] &&
+		w.GetTile(destX, destY-1).Dists[dest] < tile.Dists[dest] {
 		stepY = -1
 	}
 
 	// Find how far we have to go in the y-axis
 	if stepY != 0 {
-		for newDestY := destY + stepY;
-			w.validCoord(destX, newDestY) && w.GetTile(destX, newDestY).Walkable() && w.GetTile(destX, newDestY).Dists[dest] < w.GetTile(destX, destY).Dists[dest];
-			newDestY += stepY {
+		for newDestY := destY + stepY; w.validCoord(destX, newDestY) && w.GetTile(destX, newDestY).Walkable() && w.GetTile(destX, newDestY).Dists[dest] < w.GetTile(destX, destY).Dists[dest]; newDestY += stepY {
 			destY = newDestY
 		}
 	}
 
 	// Work out whether we should look left or right
 	stepX := 0
-	validRightCoord := w.validCoord(destX + 1, destY)
-	validLeftCoord := w.validCoord(destX - 1, destY)
+	validRightCoord := w.validCoord(destX+1, destY)
+	validLeftCoord := w.validCoord(destX-1, destY)
 	if !validRightCoord && !validLeftCoord {
 		stepX = 0
-	} else if !validRightCoord && w.GetTile(destX - 1, destY).Dists[dest] < w.GetTile(destX, destY).Dists[dest] {
+	} else if !validRightCoord && w.GetTile(destX-1, destY).Dists[dest] < w.GetTile(destX, destY).Dists[dest] {
 		stepX = -1
-	} else if !validLeftCoord && w.GetTile(destX + 1, destY).Dists[dest] < w.GetTile(destX, destY).Dists[dest] {
+	} else if !validLeftCoord && w.GetTile(destX+1, destY).Dists[dest] < w.GetTile(destX, destY).Dists[dest] {
 		stepX = 1
 	} else if validLeftCoord && validRightCoord &&
-		w.GetTile(destX + 1, destY).Dists[dest] < w.GetTile(destX - 1, destY).Dists[dest] &&
-		w.GetTile(destX + 1, destY).Dists[dest] < w.GetTile(destX, destY).Dists[dest] {
+		w.GetTile(destX+1, destY).Dists[dest] < w.GetTile(destX-1, destY).Dists[dest] &&
+		w.GetTile(destX+1, destY).Dists[dest] < w.GetTile(destX, destY).Dists[dest] {
 		stepX = 1
 	} else if validLeftCoord && validRightCoord &&
-		w.GetTile(destX - 1, destY).Dists[dest] < w.GetTile(destX + 1, destY).Dists[dest] &&
-		w.GetTile(destX - 1, destY).Dists[dest] < w.GetTile(destX, destY).Dists[dest] {
+		w.GetTile(destX-1, destY).Dists[dest] < w.GetTile(destX+1, destY).Dists[dest] &&
+		w.GetTile(destX-1, destY).Dists[dest] < w.GetTile(destX, destY).Dists[dest] {
 		stepX = -1
 	}
 
 	// Find out how far we have to go in the x-axis
 	if stepX != 0 {
-		for newDestX := destX + stepX;
-			w.validCoord(newDestX, destY) && w.GetTile(newDestX, destY).Walkable() && w.GetTile(newDestX, destY).Dists[dest] < w.GetTile(destX, destY).Dists[dest] && w.noWallsInCol(destX, y, destY);
-			newDestX += stepX {
+		for newDestX := destX + stepX; w.validCoord(newDestX, destY) && w.GetTile(newDestX, destY).Walkable() && w.GetTile(newDestX, destY).Dists[dest] < w.GetTile(destX, destY).Dists[dest] && w.noWallsInCol(destX, y, destY); newDestX += stepX {
 			destX = newDestX
 		}
 	}
@@ -246,7 +244,7 @@ func computeDirectionForTile(x int, y int, dest Destination, w *State) {
 		X: destX,
 		Y: destY,
 	}
-	tile.Directions[dest] = utils.OptionalFloat64WithValue(math.Atan2(float64(destY - y), float64(destX - x)))
+	tile.Directions[dest] = utils.OptionalFloat64WithValue(math.Atan2(float64(destY-y), float64(destX-x)))
 
 }
 

@@ -172,6 +172,7 @@ func SendBulk() {
 	if err != nil {
 		log.Print("Cannot connect to backend")
 	} else {
+		log.Println(resp.Body)
 		err := resp.Body.Close()
 		if err != nil {
 			log.Println("cannot close http response, don't care")
