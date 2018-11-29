@@ -25,7 +25,13 @@ type Individual struct {
 	UUID         string         // UUID of this actor for sending updates
 	Colour       color.Color    // colour to render this individual
 	LastMoveDist float64
+	CurrentOri   float64        // Current orientation
+	CurrentSway  float64        // Current sway
 }
+
+const (
+		ORIENTATION_THRESHOLD = 0.1
+)
 
 func (l *Likelihood) ProbabilityAtTick(time time.Time) float64 {
 	bestProb := 0.0
@@ -89,32 +95,26 @@ func (i *Individual) DirectionForDestination(dest Destination, w *State) utils.O
 
 	// TODO: Look for people in their ordinal direction and follow them
 
-	sway := (rand.Float64() - 0.5) * math.Pi / 2
+	newOri, present := tile.Directions[dest].Value()
+	newSway := (rand.Float64() - 0.5) * math.Pi / 2
 
 	if i.LastMoveDist < 0.05 {
-		sway *= 2.5
+		newSway *= 2.5
 	}
-	theta := 0.0
 
-	switch tile.Directions[dest] {
-	case DirectionN:
-		theta = -math.Pi / 2
-	case DirectionNE:
-		theta = -math.Pi / 4
-	case DirectionE:
-		theta = 0
-	case DirectionSE:
-		theta = math.Pi / 4
-	case DirectionS:
-		theta = math.Pi / 2
-	case DirectionSW:
-		theta = 3 * math.Pi / 4
-	case DirectionW:
-		theta = math.Pi
-	case DirectionNW:
-		theta = -3 * math.Pi / 4
-	default:
+	if !present {
+		// TODO: what to do here?
 		return utils.OptionalFloat64WithEmptyValue()
 	}
-	return utils.OptionalFloat64WithValue(theta + sway)
-}
+
+	// Only change direction if we are going sufficiently against the flow field
+	if math.Abs(i.CurrentOri - newOri) >= ORIENTATION_THRESHOLD ||
+		i.LastMoveDist < 0.05 {
+		// Set the new orientation and sway
+		i.CurrentOri = newOri
+		i.CurrentSway = newSway
+	}
+
+	return utils.OptionalFloat64WithValue(i.CurrentOri + i.CurrentSway)
+
+	}

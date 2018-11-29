@@ -6,6 +6,7 @@ import (
 	"math"
 
 	"github.com/jupp0r/go-priority-queue"
+	"github.com/real-time-footfall-analysis/rtfa-simulation/utils"
 )
 
 var deltas []pairInts
@@ -95,7 +96,7 @@ func initQueue(w *State, dest Destination) (*pq.PriorityQueue, error) {
 		destTile.Dists = make(map[Destination]float64)
 	}
 	if destTile.Directions == nil {
-		destTile.Directions = make(map[Destination]Direction)
+		destTile.Directions = make(map[Destination]utils.OptionalFloat64)
 	}
 	destTile.Dists[dest] = 0
 	queue.Insert(destTile, destTile.Dists[dest])

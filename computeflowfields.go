@@ -4,6 +4,7 @@ import (
 	"fmt"
 	_ "image/png"
 	"math"
+	"github.com/real-time-footfall-analysis/rtfa-simulation/utils"
 )
 
 type pairInts struct {
@@ -81,13 +82,11 @@ func (w *State) PrintDirections(destination Destination) {
 		for j := 0; j < w.GetWidth(); j++ {
 
 			tile := w.GetTile(j, i)
-
-			if tile.Dists[destination] == 0 {
-				fmt.Printf("X")
-			} else if !tile.Walkable() {
-				fmt.Print("#")
+			angle, present := tile.Directions[destination].Value()
+			if !present || angle == math.Inf(1) {
+				fmt.Print("## ")
 			} else {
-				fmt.Print(tile.Directions[destination])
+				fmt.Printf("%02.f ", angle)
 			}
 
 		}
@@ -105,8 +104,33 @@ func (w *State) PrintDistances(destination Destination) {
 
 			tile := w.GetTile(j, i)
 
+			destToPrint := tile.Dists[destination]
+			if destToPrint == math.Inf(1) {
+				fmt.Print("## ")
+			} else {
+				fmt.Printf("%02.f ", destToPrint)
+			}
 
-			fmt.Printf("%05.f", tile.Dists[destination])
+		}
+		fmt.Println()
+
+	}
+	fmt.Println()
+
+}
+
+func (w *State) PrintDestTiles(destination Destination) {
+
+	for i := 0; i < w.GetHeight(); i++ {
+		for j := 0; j < w.GetWidth(); j++ {
+
+			tile := w.GetTile(j, i)
+
+			if tile.DestTile == nil {
+				fmt.Print(" #### ")
+			} else {
+				fmt.Printf("[%d, %d]", tile.DestTile.X, tile.DestTile.Y)
+			}
 
 		}
 		fmt.Println()
@@ -128,116 +152,128 @@ func (w *State) GenerateFlowField(destination Destination) error {
 
 // Assuming that distance information has been filled in by dijkstra,
 // calculate the directions needed
-func (w *State) computeDirections(dest Destination) error {
+func (w *State) computeDirections(dest Destination) {
 
 	for i := 0; i < w.GetWidth(); i++ {
 		for j := 0; j < w.GetHeight(); j++ {
-
-			// Disallowed delta movements
-			disallowed := make([]pairInts, 0)
-
-			tile := w.GetTile(i, j)
-
-			// Check for wall in border
-			hasWallInBorder := false
-			for dX := -1; dX <= 1; dX++ {
-				for dY := -1; dY <= 1; dY++ {
-
-					// Skip looking at myself
-					if dX == 0 && dY == 0 {
-						continue
-					}
-
-					newX := i + dX
-					newY := j + dY
-
-					if newX >= 0 && newX < w.GetWidth() &&
-						newY >= 0 && newY < w.GetHeight() {
-
-						newTile := w.GetTile(newX, newY)
-						if !newTile.Walkable() {
-							hasWallInBorder = true
-
-							if dX == -1 && dY == 0 {
-								disallowed = append(disallowed, pairInts{-1, 1})
-								disallowed = append(disallowed, pairInts{-1, -1})
-							}
-							if dX == 0 && dY == 1 {
-								disallowed = append(disallowed, pairInts{-1, 1})
-								disallowed = append(disallowed, pairInts{1, 1})
-							}
-							if dX == 0 && dY == -1 {
-								disallowed = append(disallowed, pairInts{-1, -1})
-								disallowed = append(disallowed, pairInts{1, -1})
-							}
-							if dX == 1 && dY == 0 {
-								disallowed = append(disallowed, pairInts{1, 1})
-								disallowed = append(disallowed, pairInts{1, -1})
-							}
-
-						}
-
-					}
-
-				}
-			}
-
-			// Compute the bestDX and bestDY to move in
-			shortestDistance := math.Inf(1)
-			bestDX := -1
-			bestDY := -1
-			for dX := -1; dX <= 1; dX++ {
-				for dY := -1; dY <= 1; dY++ {
-
-					// Skip looking at myself
-					if dX == 0 && dY == 0 {
-						continue
-					}
-
-					// Check for disallowed deltas
-					if hasWallInBorder {
-						allow := true
-						for _, disallowedPairInts := range disallowed {
-							if dX == disallowedPairInts.fst && dY == disallowedPairInts.snd {
-								allow = false
-							}
-						}
-						if !allow {
-							continue
-						}
-					}
-
-					newX := i + dX
-					newY := j + dY
-
-					if newX >= 0 && newX < w.GetWidth() &&
-						newY >= 0 && newY < w.GetHeight() {
-
-						newTile := w.GetTile(newX, newY)
-						if newTile.Walkable() && newTile.Dists[dest] < shortestDistance {
-							shortestDistance = newTile.Dists[dest]
-							bestDX = dX
-							bestDY = dY
-						}
-
-					}
-
-				}
-			}
-
-			// Translate this to a direction
-			if tile.Directions == nil {
-				tile.Directions = make(map[Destination]Direction)
-			}
-			tile.Directions[dest] = deltaToDirection(bestDX, bestDY)
-
+			computeDirectionForTile(i, j, dest, w)
 		}
 	}
 
-	return nil
+}
+func computeDirectionForTile(x int, y int, dest Destination, w *State) {
+
+	tile := w.GetTile(x, y)
+
+	if tile.Directions == nil {
+		tile.Directions = make(map[Destination]utils.OptionalFloat64)
+	}
+
+	// Skip walls
+	if !tile.Walkable() {
+		tile.Directions[dest] = utils.OptionalFloat64WithEmptyValue()
+		tile.DestTile = nil
+		return
+	}
+
+	// Find the next as-the-crow-flies destination tile
+	destX := x
+	destY := y
+
+	// Work out whether we should look up or down
+	stepY := 0
+	validUpCoord := w.validCoord(destX, destY + 1)
+	validDownCoord := w.validCoord(destX, destY - 1)
+	if !validUpCoord && !validDownCoord {
+		stepY = 0
+	} else if !validUpCoord && w.GetTile(destX, destY - 1).Dists[dest] < tile.Dists[dest] {
+		stepY = -1
+	} else if !validDownCoord && w.GetTile(destX, destY + 1).Dists[dest] < tile.Dists[dest] {
+		stepY = 1
+	} else if validUpCoord && validDownCoord &&
+		w.GetTile(destX, destY + 1).Dists[dest] < w.GetTile(destX, destY - 1).Dists[dest] &&
+		w.GetTile(destX, destY + 1).Dists[dest] < tile.Dists[dest] {
+		stepY = 1
+	} else if validUpCoord && validDownCoord &&
+		w.GetTile(destX, destY - 1).Dists[dest] < w.GetTile(destX, destY + 1).Dists[dest] &&
+		w.GetTile(destX, destY - 1).Dists[dest] < tile.Dists[dest] {
+		stepY = -1
+	}
+
+	// Find how far we have to go in the y-axis
+	if stepY != 0 {
+		for newDestY := destY + stepY;
+			w.validCoord(destX, newDestY) && w.GetTile(destX, newDestY).Walkable() && w.GetTile(destX, newDestY).Dists[dest] < w.GetTile(destX, destY).Dists[dest];
+			newDestY += stepY {
+			destY = newDestY
+		}
+	}
+
+	// Work out whether we should look left or right
+	stepX := 0
+	validRightCoord := w.validCoord(destX + 1, destY)
+	validLeftCoord := w.validCoord(destX - 1, destY)
+	if !validRightCoord && !validLeftCoord {
+		stepX = 0
+	} else if !validRightCoord && w.GetTile(destX - 1, destY).Dists[dest] < w.GetTile(destX, destY).Dists[dest] {
+		stepX = -1
+	} else if !validLeftCoord && w.GetTile(destX + 1, destY).Dists[dest] < w.GetTile(destX, destY).Dists[dest] {
+		stepX = 1
+	} else if validLeftCoord && validRightCoord &&
+		w.GetTile(destX + 1, destY).Dists[dest] < w.GetTile(destX - 1, destY).Dists[dest] &&
+		w.GetTile(destX + 1, destY).Dists[dest] < w.GetTile(destX, destY).Dists[dest] {
+		stepX = 1
+	} else if validLeftCoord && validRightCoord &&
+		w.GetTile(destX - 1, destY).Dists[dest] < w.GetTile(destX + 1, destY).Dists[dest] &&
+		w.GetTile(destX - 1, destY).Dists[dest] < w.GetTile(destX, destY).Dists[dest] {
+		stepX = -1
+	}
+
+	// Find out how far we have to go in the x-axis
+	if stepX != 0 {
+		for newDestX := destX + stepX;
+			w.validCoord(newDestX, destY) && w.GetTile(newDestX, destY).Walkable() && w.GetTile(newDestX, destY).Dists[dest] < w.GetTile(destX, destY).Dists[dest] && w.noWallsInCol(destX, y, destY);
+			newDestX += stepX {
+			destX = newDestX
+		}
+	}
+
+	// TODO: Follow this angle UNTIL the difference between the
+	// suggested angle at the square you are at and the current angle is greater than some threshold
+	// Add randomness to the angle chosen - but take this into account when using the threshold^
+
+	tile.DestTile = &Destination{
+		X: destX,
+		Y: destY,
+	}
+	tile.Directions[dest] = utils.OptionalFloat64WithValue(math.Atan2(float64(destY - y), float64(destX - x)))
 
 }
 
+func (w *State) validCoord(x, y int) bool {
+	return x >= 0 && y >= 0 && y < w.GetHeight() && x < w.GetWidth()
+}
+
+func (w *State) noWallsInCol(x, y1, y2 int) bool {
+
+	maxY := y1
+	minY := y2
+	if maxY < minY {
+		maxY = y2
+		minY = y1
+	}
+
+	for y := minY; y <= maxY; y++ {
+		if !w.validCoord(x, y) || !w.GetTile(x, y).Walkable() {
+			return false
+		}
+	}
+
+	return true
+}
+
+// Converts dX, dY to a direction:
+// flipping the y axis
 func deltaToDirection(dX, dY int) Direction {
 
 	if dX == -1 && dY == -1 {
