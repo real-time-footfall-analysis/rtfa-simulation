@@ -60,6 +60,14 @@ func (s *State) LoadRegions(path string, lat, lng float64) {
 	}
 	s.Regions = regions
 
+	newList := make([]update, 0)
+	bulkUpdate = &newList
+
+	if s.BulkSend {
+		updateChannel = make(chan []byte, 50)
+		startBulkConsumer(updateChannel)
+	}
+
 }
 
 func latLngToCoords(lat, lng, latOrigin, lngOrigin float64) (float64, float64) {
@@ -89,7 +97,7 @@ func UpdateServer(regions *[]Region, individual *Individual, time time.Time, bul
 				// we must send update to backend
 				u := update{EventID: r.EventID, RegionID: r.ID, UUID: individual.UUID, Entering: true, OccurredAt: time.Unix()}
 				if bulk {
-					bulkUpdate = append(bulkUpdate, u)
+					*bulkUpdate = append(*bulkUpdate, u)
 				} else {
 					sendUpdate(&u)
 				}
@@ -103,7 +111,7 @@ func UpdateServer(regions *[]Region, individual *Individual, time time.Time, bul
 				// we must send update to backend to say this individual is no longer in the region.
 				u := update{EventID: r.EventID, RegionID: r.ID, UUID: individual.UUID, Entering: false, OccurredAt: time.Unix()}
 				if bulk {
-					bulkUpdate = append(bulkUpdate, u)
+					*bulkUpdate = append(*bulkUpdate, u)
 				} else {
 					sendUpdate(&u)
 				}
@@ -119,7 +127,7 @@ func LeaveAllRegions(regions *[]Region, individual *Individual, time time.Time, 
 			r := (*regions)[rID]
 			u := update{EventID: r.EventID, RegionID: r.ID, UUID: individual.UUID, Entering: false, OccurredAt: time.Unix()}
 			if bulk {
-				bulkUpdate = append(bulkUpdate, u)
+				*bulkUpdate = append(*bulkUpdate, u)
 			} else {
 				sendUpdate(&u)
 			}
@@ -150,35 +158,47 @@ func sendUpdate(u *update) {
 	}
 }
 
-const bulkUrl = "http://api.jackchorley.club/update/bulk"
+const bulkUrl = "http://api.jackchorley.club/bulkUpdate"
 
-var bulkUpdate []update
+var bulkUpdate *[]update
+var updateChannel chan []byte
 
 func SendBulk() {
-	if len(bulkUpdate) < 10 {
+	if bulkUpdate == nil || len(*bulkUpdate) < 10 {
 		return
 	}
+	updateList := bulkUpdate
+	newList := make([]update, 0)
+	bulkUpdate = &newList
 
-	var jsonStr, err = json.Marshal(bulkUpdate)
+	var jsonStr, err = json.Marshal(*updateList)
 	if err != nil {
 		log.Fatal("Cannot marshal bulk update:")
 	}
-	buffer := bytes.NewBuffer(jsonStr)
-	log.Println("buffer: ", buffer)
-	log.Println("sending", len(bulkUpdate), "updates to backend")
-	bulkUpdate = nil // reset updates as not to resend them
-	req, err := http.NewRequest("POST", bulkUrl, buffer)
-	//req.Header.Set("X-Custom-Header", "myvalue")
-	req.Header.Set("Content-Type", "application/json")
-	client := &http.Client{}
-	resp, err := client.Do(req)
-	if err != nil {
-		log.Print("Cannot connect to backend")
-	} else {
-		log.Println(resp.Body)
-		err := resp.Body.Close()
-		if err != nil {
-			log.Println("cannot close http response, don't care")
+	updateChannel <- jsonStr
+}
+
+func startBulkConsumer(jsonChannel chan []byte) {
+	go func() {
+		for {
+			jsonStr := <-jsonChannel
+
+			buffer := bytes.NewBuffer(jsonStr)
+			log.Println("buffer: ", buffer)
+			req, err := http.NewRequest("POST", bulkUrl, buffer)
+			//req.Header.Set("X-Custom-Header", "myvalue")
+			req.Header.Set("Content-Type", "application/json")
+			client := &http.Client{}
+			resp, err := client.Do(req)
+			if err != nil {
+				log.Print("Cannot connect to backend")
+			} else {
+				log.Println(resp.Status)
+				err := resp.Body.Close()
+				if err != nil {
+					log.Println("cannot close http response, don't care")
+				}
+			}
 		}
-	}
+	}()
 }

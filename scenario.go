@@ -26,6 +26,7 @@ type destination struct {
 
 	Name   string  `json:"name"`
 	Events []event `json:"events"`
+	Radius float64 `json:"radius"`
 }
 
 type event struct {
@@ -52,6 +53,7 @@ func (s *State) LoadScenario(path string) {
 		if d.RegionID > 0 {
 			scenario.Destinations[i].X = int(s.FindRegion(d.RegionID).X)
 			scenario.Destinations[i].Y = int(s.FindRegion(d.RegionID).Y)
+			scenario.Destinations[i].Radius = float64(int(s.FindRegion(d.RegionID).Radius))
 		}
 		log.Println(scenario.Destinations[i].Name, " - ", scenario.Destinations[i].X, ",", scenario.Destinations[i].Y)
 	}
@@ -80,6 +82,7 @@ func (d *destination) GenerateRandomLikelihood() Likelihood {
 		Destination: Destination{
 			X: d.X,
 			Y: d.Y,
+			R: d.Radius,
 		},
 	}
 

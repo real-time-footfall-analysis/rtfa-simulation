@@ -14,8 +14,8 @@ import (
 
 func main() {
 	w := LoadFromImage("hyde_park_quarter.png")
-	w.LoadRegions("testRegions.json", 51.506478, -0.172219)
 	w.BulkSend = true
+	w.LoadRegions("testRegions.json", 51.506478, -0.172219)
 	w.LoadScenario("scenario1.json")
 	log.Println("loaded scenario")
 
@@ -69,6 +69,7 @@ func simulate(world *State, r *RenderState) {
 		err := world.GenerateFlowField(Destination{
 			X: dest.X,
 			Y: dest.Y,
+			R: dest.Radius,
 		})
 		log.Println("Flow field for", dest.X, ",", dest.Y, "done")
 		if err != nil {

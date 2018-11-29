@@ -25,12 +25,13 @@ type Individual struct {
 	UUID         string         // UUID of this actor for sending updates
 	Colour       color.Color    // colour to render this individual
 	LastMoveDist float64
-	CurrentOri   float64        // Current orientation
-	CurrentSway  float64        // Current sway
+	CurrentOri   float64     // Current orientation
+	CurrentSway  float64     // Current sway
+	target       Destination // current target destination
 }
 
 const (
-		ORIENTATION_THRESHOLD = 0.1
+	ORIENTATION_THRESHOLD = 0.1
 )
 
 func (l *Likelihood) ProbabilityAtTick(time time.Time) float64 {
@@ -108,7 +109,7 @@ func (i *Individual) DirectionForDestination(dest Destination, w *State) utils.O
 	}
 
 	// Only change direction if we are going sufficiently against the flow field
-	if math.Abs(i.CurrentOri - newOri) >= ORIENTATION_THRESHOLD ||
+	if math.Abs(i.CurrentOri-newOri) >= ORIENTATION_THRESHOLD ||
 		i.LastMoveDist < 0.05 {
 		// Set the new orientation and sway
 		i.CurrentOri = newOri
@@ -117,4 +118,4 @@ func (i *Individual) DirectionForDestination(dest Destination, w *State) utils.O
 
 	return utils.OptionalFloat64WithValue(i.CurrentOri + i.CurrentSway)
 
-	}
+}
