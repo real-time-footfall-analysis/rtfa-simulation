@@ -24,9 +24,11 @@ type destination struct {
 	Y        int   `json:"Y"`
 	RegionID int32 `json:"regionId,omitempty"`
 
-	Name   string  `json:"name"`
-	Events []event `json:"events"`
-	Radius float64 `json:"radius"`
+	Name     string  `json:"name"`
+	Events   []event `json:"events"`
+	Radius   float64 `json:"radius"`
+	MeanTime float64 `json:"meanUseTime"`
+	VarTime  float64 `json:"useTimeVar"`
 }
 
 type event struct {
@@ -77,6 +79,15 @@ func (s *Scenario) GenerateRandomPersonality() []Likelihood {
 	return ls
 }
 
+func (s *Scenario) GetDestination(target Destination) *destination {
+	for i, d := range s.Destinations {
+		if d.X == target.X && d.Y == target.Y && d.Radius == target.R {
+			return &s.Destinations[i]
+		}
+	}
+	return nil
+}
+
 func (d *destination) GenerateRandomLikelihood() Likelihood {
 	l := Likelihood{
 		Destination: Destination{
@@ -105,4 +116,21 @@ func (d *destination) GenerateRandomLikelihood() Likelihood {
 
 	return l
 
+}
+
+func (d *destination) NextEventToEnd(t time.Time) *event {
+	earliest := time.Unix(1<<63-62135596801, 999999999)
+	ret := -1
+	for i, e := range d.Events {
+		if e.Start.Before(t) && e.End.After(t) {
+			if e.End.Before(earliest) {
+				earliest = e.End
+				ret = i
+			}
+		}
+	}
+	if ret == -1 {
+		return nil
+	}
+	return &d.Events[ret]
 }
