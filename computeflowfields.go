@@ -30,6 +30,7 @@ const (
 type Destination struct { // Indicies into the macromap
 	X int
 	Y int
+	R float64
 }
 
 func InitFlowFields() {
@@ -243,6 +244,7 @@ func computeDirectionForTile(x int, y int, dest Destination, w *State) {
 	tile.DestTile = &Destination{
 		X: destX,
 		Y: destY,
+		// radius not used for debuging stuff
 	}
 	tile.Directions[dest] = utils.OptionalFloat64WithValue(math.Atan2(float64(destY-y), float64(destX-x)))
 
