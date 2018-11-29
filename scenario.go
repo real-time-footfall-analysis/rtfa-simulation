@@ -13,6 +13,7 @@ type Scenario struct {
 	End          time.Time     `json:"end,string"`
 	EntranceX    int           `json:"entranceX"`
 	EntranceY    int           `json:"entranceY"`
+	Exit         destination   `json:"exit"`
 	TotalPeople  int           `json:"totalPeople"`
 	TotalGroups  int           `json:"totalGroups"`
 	Destinations []destination `json:"destinations"`
@@ -47,9 +48,20 @@ func (s *State) LoadScenario(path string) {
 		log.Fatal("parsing config file", err.Error())
 	}
 
+	for i, d := range scenario.Destinations {
+		if d.RegionID > 0 {
+			scenario.Destinations[i].X = int(s.FindRegion(d.RegionID).X)
+			scenario.Destinations[i].Y = int(s.FindRegion(d.RegionID).Y)
+		}
+		log.Println(scenario.Destinations[i].Name, " - ", scenario.Destinations[i].X, ",", scenario.Destinations[i].Y)
+	}
+
+	scenario.Destinations = append(scenario.Destinations, scenario.Exit)
+
 	log.Println(scenario)
 	log.Println(scenario.Destinations[0].Events[0].Start)
 	log.Println(scenario.Destinations[0].Events[0].End)
+
 	s.scenario = scenario
 	s.time = scenario.Start
 }

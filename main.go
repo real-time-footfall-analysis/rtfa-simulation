@@ -13,12 +13,13 @@ import (
 )
 
 func main() {
-	w := LoadFromImage("test5.png")
+	w := LoadFromImage("hyde_park_quarter.png")
 	w.LoadRegions("testRegions.json", 51.506478, -0.172219)
 	w.BulkSend = true
 	w.LoadScenario("scenario1.json")
+	log.Println("loaded scenario")
 
-	fmt.Println("state size:", w.GetWidth(), w.GetHeight())
+	/*fmt.Println("state size:", w.GetWidth(), w.GetHeight())
 	for y := 0; y < w.GetHeight(); y++ {
 		for x := 0; x < w.GetWidth(); x++ {
 			if w.GetTile(x, y).Walkable() {
@@ -29,7 +30,7 @@ func main() {
 		}
 		fmt.Println()
 	}
-	fmt.Println()
+	fmt.Println()*/
 
 	driver.Main(func(s screen.Screen) {
 		r := SetupRender(s, w.GetImage(), &w.Regions)
@@ -49,31 +50,36 @@ func main() {
 
 func simulate(world *State, r *RenderState) {
 	//time.Sleep(5 * time.Second)
+	log.Println("simulation starting")
 
 	steps := 0
 
-	groups := make([]*Group, world.scenario.TotalGroups)
-	for i, _ := range groups {
-		groups[i] = &Group{
+	world.groups = make([]*Group, world.scenario.TotalGroups)
+	for i, _ := range world.groups {
+		world.groups[i] = &Group{
 			Individuals: make([]*Individual, 0),
 		}
 	}
 
+	log.Println("Flow fields starting")
 	InitFlowFields()
-
 	for _, dest := range world.scenario.Destinations {
+		log.Println("Flow field for", dest.X, ",", dest.Y, "starting")
+
 		err := world.GenerateFlowField(Destination{
 			X: dest.X,
 			Y: dest.Y,
 		})
+		log.Println("Flow field for", dest.X, ",", dest.Y, "done")
 		if err != nil {
 			log.Fatal("cannot make flow field for", dest)
 		}
 	}
+	log.Println("Flow fields done")
 
 	// Set up parallel processing channels
 	channels := make([]chan map[*Individual]utils.OptionalFloat64, 0)
-	for i := 0; i < len(groups); i++ {
+	for i := 0; i < len(world.groups); i++ {
 		channel := make(chan map[*Individual]utils.OptionalFloat64)
 		channels = append(channels, channel)
 	}
@@ -89,7 +95,7 @@ func simulate(world *State, r *RenderState) {
 				break
 			}
 			groupIndex := rand.Intn(world.scenario.TotalGroups)
-			groups[groupIndex].Individuals = append(groups[groupIndex].Individuals, indiv)
+			world.groups[groupIndex].Individuals = append(world.groups[groupIndex].Individuals, indiv)
 			world.peopleAdded++
 		}
 
@@ -98,7 +104,7 @@ func simulate(world *State, r *RenderState) {
 		// world.MoveAll()
 
 		// Get the desired positions for each of the individuals in each group in parallel
-		for i, group := range groups {
+		for i, group := range world.groups {
 			go group.Next(channels[i], world)
 		}
 
@@ -128,12 +134,12 @@ func simulate(world *State, r *RenderState) {
 		if steps%500 == 0 {
 			fmt.Println("average tick time: ", avg/1000000000)
 			fmt.Println("sim time: ", world.time)
+			SendBulk()
 		}
 
 	}
 
 	fmt.Println("Ticker stopped")
-	SendBulk()
 }
 
 func processMovementsForGroup(world *State, movements map[*Individual]utils.OptionalFloat64) {

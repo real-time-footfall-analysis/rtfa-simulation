@@ -1,15 +1,15 @@
 package main
 
 import (
+	"fmt"
 	"github.com/real-time-footfall-analysis/rtfa-simulation/geometry"
+	"github.com/real-time-footfall-analysis/rtfa-simulation/utils"
 	"image"
 	"image/color"
 	"log"
 	"math"
 	"math/rand"
-	"strconv"
 	"time"
-	"github.com/real-time-footfall-analysis/rtfa-simulation/utils"
 )
 
 type Tile struct {
@@ -18,7 +18,7 @@ type Tile struct {
 	HitCount   int
 	Dists      map[Destination]float64 // Used internally for dijkstra
 	Directions map[Destination]utils.OptionalFloat64
-	DestTile *Destination // TODO: remove
+	DestTile   *Destination // TODO: remove
 	X          int
 	Y          int
 }
@@ -47,6 +47,7 @@ type State struct {
 	scenario      Scenario
 	peopleAdded   int
 	peopleCurrent int
+	groups        []*Group
 }
 
 func (w *State) GetWidth() int {
@@ -89,10 +90,11 @@ func (w *State) AddRandom() *Individual {
 			r, g, b := color.YCbCrToRGB(uint8(100), uint8(rand.Intn(256)), uint8(rand.Intn(256)))
 			c := color.RGBA{r, g, b, 255}
 
+			name := fmt.Sprintf("SimBot-%029d", counter)
 			//randSetIndex := rand.Intn(4)
 			person := Individual{
 				Loc:    geometry.NewPoint(float64(x)+xf, float64(y)+yf),
-				Colour: c, UUID: "SimBot-" + strconv.Itoa(counter),
+				Colour: c, UUID: name,
 				Tick:        0,
 				StepSize:    0.2,
 				Likelihoods: w.scenario.GenerateRandomPersonality(),
@@ -126,15 +128,50 @@ func (w *State) MoveIndividual(person *Individual, theta float64, distance float
 			for ti, p := range tile.People {
 				if p.UUID == person.UUID {
 					pos = ti
+					break
 				}
 			}
 			if pos < 0 {
+				//return
 				log.Fatal("how?")
 			}
 
 			tile.People = append(tile.People[:pos], tile.People[pos+1:]...)
-			newTile := w.GetTile(int(nx), int(ny))
-			newTile.People = append(newTile.People, person)
+			if int(nx) != w.scenario.Exit.X || int(ny) != w.scenario.Exit.Y {
+				newTile := w.GetTile(int(nx), int(ny))
+				newTile.People = append(newTile.People, person)
+			} else {
+				allPos := -1
+				for ti, p := range w.allPeople {
+					if p.UUID == person.UUID {
+						allPos = ti
+						break
+					}
+				}
+				if allPos < 0 {
+					log.Fatal("how?2")
+				}
+				gPos := -1
+				iPos := -1
+				for gi, g := range w.groups {
+					for ti, p := range g.Individuals {
+						if p.UUID == person.UUID {
+							gPos = gi
+							iPos = ti
+							break
+						}
+					}
+				}
+				if gPos < 0 {
+					log.Fatal("how?3")
+				}
+				if iPos < 0 {
+					log.Fatal("how?4")
+				}
+				w.groups[gPos].Individuals = append(w.groups[gPos].Individuals[:iPos], w.groups[gPos].Individuals[iPos+1:]...)
+				w.allPeople = append(w.allPeople[:allPos], w.allPeople[allPos+1:]...)
+				LeaveAllRegions(&w.Regions, person, w.time, w.BulkSend)
+			}
 		}
 	} else {
 
@@ -159,4 +196,13 @@ func (w *State) MoveAll() {
 func (w *State) TickTime() {
 	w.time = w.time.Add(time.Second)
 
+}
+
+func (s *State) FindRegion(id int32) *Region {
+	for i, r := range s.Regions {
+		if r.ID == id {
+			return &s.Regions[i]
+		}
+	}
+	return nil
 }

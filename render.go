@@ -93,8 +93,8 @@ func SetupRender(s screen.Screen, original image.Image, regions *[]Region) Rende
 
 	for _, region := range *regions {
 		fmt.Println("region: ", region.Name, region.X, region.Y)
-		red, green, blue := color.YCbCrToRGB(uint8(100), uint8(rand.Intn(256)), uint8(rand.Intn(256)))
-		c := color.RGBA{red, green, blue, 100}
+		red, green, blue := color.YCbCrToRGB(uint8(50), uint8(rand.Intn(256)), uint8(rand.Intn(256)))
+		c := color.RGBA{red, green, blue, 150}
 		drawRegionInBuffer(&r, region.X, region.Y, c, region.Radius)
 	}
 

@@ -32,10 +32,6 @@ type Region struct {
 	sqRad   float64
 }
 
-type RegionList struct {
-	list []Region
-}
-
 func (s *State) LoadRegions(path string, lat, lng float64) {
 	configFile, err := os.Open(path)
 	if err != nil {
@@ -117,6 +113,20 @@ func UpdateServer(regions *[]Region, individual *Individual, time time.Time, bul
 	}
 }
 
+func LeaveAllRegions(regions *[]Region, individual *Individual, time time.Time, bulk bool) {
+	for rID, b := range individual.RegionIds {
+		if b {
+			r := (*regions)[rID]
+			u := update{EventID: r.EventID, RegionID: r.ID, UUID: individual.UUID, Entering: false, OccurredAt: time.Unix()}
+			if bulk {
+				bulkUpdate = append(bulkUpdate, u)
+			} else {
+				sendUpdate(&u)
+			}
+		}
+	}
+}
+
 const url = "http://api.jackchorley.club/update"
 
 func sendUpdate(u *update) {
@@ -145,6 +155,9 @@ const bulkUrl = "http://api.jackchorley.club/update/bulk"
 var bulkUpdate []update
 
 func SendBulk() {
+	if len(bulkUpdate) < 10 {
+		return
+	}
 
 	var jsonStr, err = json.Marshal(bulkUpdate)
 	if err != nil {
@@ -162,6 +175,7 @@ func SendBulk() {
 	if err != nil {
 		log.Print("Cannot connect to backend")
 	} else {
+		log.Println(resp.Body)
 		err := resp.Body.Close()
 		if err != nil {
 			log.Println("cannot close http response, don't care")
