@@ -1,5 +1,12 @@
 {"start": "2018-11-23T07:01:00.000Z", "end":"2018-11-23T19:00:00.000Z",
-  "entranceX": 1, "entranceY":1, "totalPeople": 100, "totalGroups": 100,
+  "entranceX": 1, "entranceY":1, "totalPeople": 1000, "totalGroups": 100,
+  "exit":{
+    "x":20, "y": 1, "regionId": 0, "comment":" use either x,y or regionID to use an accosiated regionID's position*",
+    "name": "exit gate", "events": [
+      {"name": "General Exit", "start": "2018-11-23T08:00:00.000Z", "end": "2018-11-23T19:00:00.000Z", "popularity": 0.1},
+      {"name": "Home Time", "start": "2018-11-23T16:30:00.000Z", "end": "2018-11-23T19:00:00.000Z", "popularity": 0.3},
+      {"name": "Closing Time", "start": "2018-11-23T18:30:00.000Z", "end": "2018-11-23T19:00:00.000Z", "popularity": 0.99}
+    ]},
   "destinations":[
     {"x":170, "y":  110, "regionId": 0, "comment":" use either x,y or regionID to use an accosiated regionID's position*",
       "name": "stage1", "events": [
@@ -13,7 +20,7 @@
       {"name": "General Food", "start": "2018-11-23T07:00:00.000Z", "end": "2018-11-23T17:00:00.000Z", "popularity": 0.2},
       {"name": "Breakfast", "start": "2018-11-23T07:30:00.000Z", "end": "2018-11-23T10:00:00.000Z", "popularity": 0.5},
       {"name": "Lunch", "start": "2018-11-23T12:00:00.000Z", "end": "2018-11-23T14:00:00.000Z", "popularity": 0.5},
-      {"name": "Dinner", "start": "2018-11-23T17:00:00.000Z", "end": "2018-11-23T19:00:00.000Z", "popularity": 0.5}
+      {"name": "Dinner", "start": "2018-11-23T17:00:00.000Z", "end": "2018-11-23T18:00:00.000Z", "popularity": 0.5}
     ]
     }
   ]

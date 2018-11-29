@@ -32,10 +32,6 @@ type Region struct {
 	sqRad   float64
 }
 
-type RegionList struct {
-	list []Region
-}
-
 func (s *State) LoadRegions(path string, lat, lng float64) {
 	configFile, err := os.Open(path)
 	if err != nil {
@@ -114,6 +110,20 @@ func UpdateServer(regions *[]Region, individual *Individual, time time.Time, bul
 			}
 		}
 
+	}
+}
+
+func LeaveAllRegions(regions *[]Region, individual *Individual, time time.Time, bulk bool) {
+	for rID, b := range individual.RegionIds {
+		if b {
+			r := (*regions)[rID]
+			u := update{EventID: r.EventID, RegionID: r.ID, UUID: individual.UUID, Entering: false, OccurredAt: time.Unix()}
+			if bulk {
+				bulkUpdate = append(bulkUpdate, u)
+			} else {
+				sendUpdate(&u)
+			}
+		}
 	}
 }
 

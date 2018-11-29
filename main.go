@@ -52,9 +52,9 @@ func simulate(world *State, r *RenderState) {
 
 	steps := 0
 
-	groups := make([]*Group, world.scenario.TotalGroups)
-	for i, _ := range groups {
-		groups[i] = &Group{
+	world.groups = make([]*Group, world.scenario.TotalGroups)
+	for i, _ := range world.groups {
+		world.groups[i] = &Group{
 			Individuals: make([]*Individual, 0),
 		}
 	}
@@ -73,7 +73,7 @@ func simulate(world *State, r *RenderState) {
 
 	// Set up parallel processing channels
 	channels := make([]chan map[*Individual]utils.OptionalFloat64, 0)
-	for i := 0; i < len(groups); i++ {
+	for i := 0; i < len(world.groups); i++ {
 		channel := make(chan map[*Individual]utils.OptionalFloat64)
 		channels = append(channels, channel)
 	}
@@ -89,7 +89,7 @@ func simulate(world *State, r *RenderState) {
 				break
 			}
 			groupIndex := rand.Intn(world.scenario.TotalGroups)
-			groups[groupIndex].Individuals = append(groups[groupIndex].Individuals, indiv)
+			world.groups[groupIndex].Individuals = append(world.groups[groupIndex].Individuals, indiv)
 			world.peopleAdded++
 		}
 
@@ -98,7 +98,7 @@ func simulate(world *State, r *RenderState) {
 		// world.MoveAll()
 
 		// Get the desired positions for each of the individuals in each group in parallel
-		for i, group := range groups {
+		for i, group := range world.groups {
 			go group.Next(channels[i], world)
 		}
 
