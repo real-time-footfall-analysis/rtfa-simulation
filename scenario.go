@@ -48,6 +48,13 @@ func (s *State) LoadScenario(path string) {
 		log.Fatal("parsing config file", err.Error())
 	}
 
+	for _, d := range scenario.Destinations {
+		if d.RegionID > 0 {
+			d.X = int(s.FindRegion(d.RegionID).X)
+			d.Y = int(s.FindRegion(d.RegionID).Y)
+		}
+	}
+
 	scenario.Destinations = append(scenario.Destinations, scenario.Exit)
 
 	log.Println(scenario)

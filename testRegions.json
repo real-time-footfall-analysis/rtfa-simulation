@@ -1,7 +1,7 @@
-[{"regionID":62,"name":"Unnamed Region1","type":"gps","lat":51.506478,"lng":-0.172219,"radius":5,"eventID":19,"isQueue":false,"x":100,"y":100},
-  {"regionID":63,"name":"Unnamed Region2","type":"gps","lat":51.506478,"lng":-0.172219,"radius":10,"eventID":19,"isQueue":false,"x":200,"y":150},
-  {"regionID":64,"name":"Unnamed Region3","type":"gps","lat":51.506478,"lng":-0.172219,"radius":14,"eventID":19,"isQueue":false,"x":130,"y":110},
-  {"regionID":65,"name":"Unnamed Region4","type":"gps","lat":51.506478,"lng":-0.172219,"radius":12,"eventID":19,"isQueue":false,"x":70,"y":178},
-  {"regionID":66,"name":"Unnamed Region5","type":"gps","lat":51.506478,"lng":-0.172219,"radius":11,"eventID":19,"isQueue":false,"x":159,"y":7},
-  {"regionID":67,"name":"Unnamed Region6","type":"gps","lat":51.506478,"lng":-0.172219,"radius":19,"eventID":19,"isQueue":false,"x":18,"y":42},
-  {"regionID":68,"name":"Unnamed Region7","type":"gps","lat":51.506478,"lng":-0.172219,"radius":16,"eventID":19,"isQueue":false,"x":81,"y":85}]
+[
+  {"regionID":20,"name":"Cafe", "X": 469, "Y": 516,"type":"gps","uuid":"E2C56DB5-DFFB-48D2-B060-X0F5A71096E0","major":1,"minor":11,"lat":51.509334,"lng":-0.186981,"radius":60,"eventID":19,"isQueue":true},
+  {"regionID":21,"name":"Toilet", "X": 982, "Y": 365,"type":"gps","uuid":"E2C56DB5-DFFB-48D2-B060-X0F5A71096E1","major":1,"minor":12,"lat":51.510583,"lng":-0.180466,"radius":60,"eventID":19,"isQueue":true},
+  {"regionID":22,"name":"Recreation Area", "X": 1890, "Y": 825,"type":"gps","uuid":"E2C56DB5-DFFB-48D2-B060-X0F5A71096E2","major":1,"minor":13,"lat":51.506397,"lng":-0.166483,"radius":60,"eventID":19,"isQueue":false},
+  {"regionID":23,"name":"Shop", "X": 2218, "Y": 218,"type":"gps","uuid":"E2C56DB5-DFFB-48D2-B060-X0F5A71096E3","major":1,"minor":14,"lat":51.511896,"lng":-0.161062,"radius":60,"eventID":19,"isQueue":false},
+  {"regionID":24,"name":"Boris Bikes", "X": 1052, "Y": 1299,"type":"gps","uuid":"E2C56DB5-DFFB-48D2-B060-X0F5A71096E4","major":1,"minor":15,"lat":51.50238,"lng":-0.173527,"radius":60,"eventID":19,"isQueue":false}
+]

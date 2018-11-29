@@ -194,3 +194,12 @@ func (w *State) TickTime() {
 	w.time = w.time.Add(time.Second)
 
 }
+
+func (s *State) FindRegion(id int32) *Region {
+	for i, r := range s.Regions {
+		if r.ID == id {
+			return &s.Regions[i]
+		}
+	}
+	return nil
+}

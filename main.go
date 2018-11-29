@@ -13,7 +13,7 @@ import (
 )
 
 func main() {
-	w := LoadFromImage("test5.png")
+	w := LoadFromImage("hyde_park.png")
 	w.LoadRegions("testRegions.json", 51.506478, -0.172219)
 	w.BulkSend = true
 	w.LoadScenario("scenario1.json")
