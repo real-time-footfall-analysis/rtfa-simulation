@@ -155,6 +155,9 @@ const bulkUrl = "http://api.jackchorley.club/update/bulk"
 var bulkUpdate []update
 
 func SendBulk() {
+	if len(bulkUpdate) < 10 {
+		return
+	}
 
 	var jsonStr, err = json.Marshal(bulkUpdate)
 	if err != nil {

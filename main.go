@@ -134,12 +134,12 @@ func simulate(world *State, r *RenderState) {
 		if steps%500 == 0 {
 			fmt.Println("average tick time: ", avg/1000000000)
 			fmt.Println("sim time: ", world.time)
+			SendBulk()
 		}
 
 	}
 
 	fmt.Println("Ticker stopped")
-	SendBulk()
 }
 
 func processMovementsForGroup(world *State, movements map[*Individual]utils.OptionalFloat64) {
