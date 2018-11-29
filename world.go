@@ -1,15 +1,15 @@
 package main
 
 import (
+	"fmt"
 	"github.com/real-time-footfall-analysis/rtfa-simulation/geometry"
+	"github.com/real-time-footfall-analysis/rtfa-simulation/utils"
 	"image"
 	"image/color"
 	"log"
 	"math"
 	"math/rand"
-	"strconv"
 	"time"
-	"github.com/real-time-footfall-analysis/rtfa-simulation/utils"
 )
 
 type Tile struct {
@@ -18,7 +18,7 @@ type Tile struct {
 	HitCount   int
 	Dists      map[Destination]float64 // Used internally for dijkstra
 	Directions map[Destination]utils.OptionalFloat64
-	DestTile *Destination // TODO: remove
+	DestTile   *Destination // TODO: remove
 	X          int
 	Y          int
 }
@@ -90,10 +90,11 @@ func (w *State) AddRandom() *Individual {
 			r, g, b := color.YCbCrToRGB(uint8(100), uint8(rand.Intn(256)), uint8(rand.Intn(256)))
 			c := color.RGBA{r, g, b, 255}
 
+			name := fmt.Sprintf("SimBot-%029d", counter)
 			//randSetIndex := rand.Intn(4)
 			person := Individual{
 				Loc:    geometry.NewPoint(float64(x)+xf, float64(y)+yf),
-				Colour: c, UUID: "SimBot-" + strconv.Itoa(counter),
+				Colour: c, UUID: name,
 				Tick:        0,
 				StepSize:    0.2,
 				Likelihoods: w.scenario.GenerateRandomPersonality(),
