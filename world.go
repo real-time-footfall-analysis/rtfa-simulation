@@ -48,6 +48,7 @@ type State struct {
 	allPeople     []*Individual
 	time          time.Time
 	BulkSend      bool
+	SendUpdates   bool
 	peopletoAdd   int
 	scenario      Scenario
 	peopleAdded   int

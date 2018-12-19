@@ -15,6 +15,7 @@ import (
 func main() {
 	w := LoadFromImage("hyde_park_quater1.png")
 	w.BulkSend = true
+	w.SendUpdates = false
 	w.LoadRegions("testRegions.json", 51.506478, -0.172219)
 	w.LoadScenario("scenario1.json")
 	log.Println("loaded scenario")
@@ -154,6 +155,6 @@ func processMovementsForGroup(world *State, movements map[*Individual]utils.Opti
 
 		world.MoveIndividual(individual, theta, individual.StepSize)
 
-		UpdateServer(&world.Regions, individual, world.time, world.BulkSend)
+		UpdateRegions(&world.Regions, individual, world.time, world.BulkSend)
 	}
 }
