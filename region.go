@@ -194,7 +194,6 @@ func startBulkConsumer(jsonChannel chan []byte) {
 		for {
 			jsonStr := <-jsonChannel
 			log.Println(len(jsonChannel), " updates buffered")
-			continue
 			buffer := bytes.NewBuffer(jsonStr)
 			req, err := http.NewRequest("POST", bulkUrl, buffer)
 			//req.Header.Set("X-Custom-Header", "myvalue")
