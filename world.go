@@ -16,9 +16,8 @@ type Tile struct {
 	walkable   bool
 	People     []*Individual
 	HitCount   int
-	Dists      map[Destination]float64 // Used internally for dijkstra
-	Directions map[Destination]utils.OptionalFloat64
-	DestTile   *Destination // TODO: remove
+	Dists      map[DestinationID]float64 // Used internally for dijkstra
+	Directions map[DestinationID]utils.OptionalFloat64
 	X          int
 	Y          int
 

@@ -67,11 +67,7 @@ func simulate(world *State, r *RenderState) {
 	for _, dest := range world.scenario.Destinations {
 		log.Println("Flow field for", dest.X, ",", dest.Y, "starting")
 
-		err := world.GenerateFlowField(Destination{
-			X: dest.X,
-			Y: dest.Y,
-			R: dest.Radius,
-		})
+		err := world.GenerateFlowField(dest.ID)
 		log.Println("Flow field for", dest.X, ",", dest.Y, "done")
 		if err != nil {
 			log.Fatal("cannot make flow field for", dest)

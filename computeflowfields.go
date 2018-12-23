@@ -27,10 +27,8 @@ const (
 	Solid
 )
 
-type Destination struct { // Indicies into the macromap
-	X int
-	Y int
-	R float64
+type DestinationID struct { // Indicies into the macromap
+	ID int
 }
 
 func InitFlowFields() {
@@ -78,7 +76,7 @@ func (d Direction) String() string {
 	return "!"
 }
 
-func (w *State) PrintDirections(destination Destination) {
+func (w *State) PrintDirections(destination DestinationID) {
 
 	for i := 0; i < w.GetHeight(); i++ {
 		for j := 0; j < w.GetWidth(); j++ {
@@ -99,7 +97,7 @@ func (w *State) PrintDirections(destination Destination) {
 
 }
 
-func (w *State) PrintDistances(destination Destination) {
+func (w *State) PrintDistances(destination DestinationID) {
 
 	for i := 0; i < w.GetHeight(); i++ {
 		for j := 0; j < w.GetWidth(); j++ {
@@ -121,29 +119,8 @@ func (w *State) PrintDistances(destination Destination) {
 
 }
 
-func (w *State) PrintDestTiles(destination Destination) {
-
-	for i := 0; i < w.GetHeight(); i++ {
-		for j := 0; j < w.GetWidth(); j++ {
-
-			tile := w.GetTile(j, i)
-
-			if tile.DestTile == nil {
-				fmt.Print(" #### ")
-			} else {
-				fmt.Printf("[%d, %d]", tile.DestTile.X, tile.DestTile.Y)
-			}
-
-		}
-		fmt.Println()
-
-	}
-	fmt.Println()
-
-}
-
-// Generates the flow field to the destination
-func (w *State) GenerateFlowField(destination Destination) error {
+// Generates the flow field to the Destination
+func (w *State) GenerateFlowField(destination DestinationID) error {
 	log.Println("find shorted path")
 	FindShortestPath(w, destination)
 	log.Println("compute directions")
@@ -155,7 +132,7 @@ func (w *State) GenerateFlowField(destination Destination) error {
 
 // Assuming that distance information has been filled in by dijkstra,
 // calculate the directions needed
-func (w *State) computeDirections(dest Destination) {
+func (w *State) computeDirections(dest DestinationID) {
 
 	for i := 0; i < w.GetWidth(); i++ {
 		for j := 0; j < w.GetHeight(); j++ {
@@ -164,22 +141,21 @@ func (w *State) computeDirections(dest Destination) {
 	}
 
 }
-func computeDirectionForTile(x int, y int, dest Destination, w *State) {
+func computeDirectionForTile(x int, y int, dest DestinationID, w *State) {
 
 	tile := w.GetTile(x, y)
 
 	if tile.Directions == nil {
-		tile.Directions = make(map[Destination]utils.OptionalFloat64)
+		tile.Directions = make(map[DestinationID]utils.OptionalFloat64)
 	}
 
 	// Skip walls
 	if !tile.Walkable() {
 		tile.Directions[dest] = utils.OptionalFloat64WithEmptyValue()
-		tile.DestTile = nil
 		return
 	}
 
-	// Find the next as-the-crow-flies destination tile
+	// Find the next as-the-crow-flies Destination tile
 	destX := x
 	destY := y
 
@@ -241,11 +217,6 @@ func computeDirectionForTile(x int, y int, dest Destination, w *State) {
 	// suggested angle at the square you are at and the current angle is greater than some threshold
 	// Add randomness to the angle chosen - but take this into account when using the threshold^
 
-	tile.DestTile = &Destination{
-		X: destX,
-		Y: destY,
-		// radius not used for debuging stuff
-	}
 	tile.Directions[dest] = utils.OptionalFloat64WithValue(math.Atan2(float64(destY-y), float64(destX-x)))
 
 }
