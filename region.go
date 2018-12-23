@@ -129,10 +129,10 @@ func UpdateRegions(regions *[]Region, individual *Individual, time time.Time, bu
 	}
 }
 
-func LeaveAllRegions(regions *[]Region, individual *Individual, time time.Time, bulk bool) {
+func LeaveAllRegions(state *State, individual *Individual, time time.Time, bulk bool) {
 	for rID, b := range individual.RegionIds {
 		if b {
-			r := (*regions)[rID]
+			r := state.FindRegion(rID)
 			u := update{EventID: r.EventID, RegionID: r.ID, UUID: individual.UUID, Entering: false, OccurredAt: time.Unix()}
 			if bulk {
 				*bulkUpdate = append(*bulkUpdate, u)

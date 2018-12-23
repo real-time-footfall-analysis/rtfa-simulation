@@ -79,7 +79,7 @@ func initQueue(w *State, destID DestinationID) (*pq.PriorityQueue, error) {
 			}
 
 			// Skip the Destination and tiles we can't walk on
-			if !tile.Walkable() || (i == dest.X && j == dest.Y) {
+			if !tile.Walkable() || (dest.ContainsCenter(i, j)) {
 				continue
 			}
 
@@ -91,16 +91,18 @@ func initQueue(w *State, destID DestinationID) (*pq.PriorityQueue, error) {
 	}
 
 	// Insert the Destination with distance 0
-	destTile := w.GetTile(dest.X, dest.Y)
-	if destTile.Dists == nil {
-		destTile.Dists = make(map[DestinationID]float64)
-	}
-	if destTile.Directions == nil {
-		destTile.Directions = make(map[DestinationID]utils.OptionalFloat64)
-	}
-	destTile.Dists[destID] = 0
-	queue.Insert(destTile, destTile.Dists[destID])
+	for _, c := range dest.Coords {
 
+		destTile := w.GetTile(c.X, c.Y)
+		if destTile.Dists == nil {
+			destTile.Dists = make(map[DestinationID]float64)
+		}
+		if destTile.Directions == nil {
+			destTile.Directions = make(map[DestinationID]utils.OptionalFloat64)
+		}
+		destTile.Dists[destID] = 0
+		queue.Insert(destTile, destTile.Dists[destID])
+	}
 	return &queue, nil
 
 }

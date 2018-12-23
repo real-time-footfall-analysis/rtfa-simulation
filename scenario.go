@@ -11,8 +11,7 @@ import (
 type Scenario struct {
 	Start        time.Time     `json:"start,string"`
 	End          time.Time     `json:"end,string"`
-	EntranceX    int           `json:"entranceX"`
-	EntranceY    int           `json:"entranceY"`
+	Entrances    []Coord       `json:"entrance"`
 	Exit         Destination   `json:"exit"`
 	TotalPeople  int           `json:"totalPeople"`
 	TotalGroups  int           `json:"totalGroups"`
@@ -21,16 +20,20 @@ type Scenario struct {
 }
 
 type Destination struct {
-	X        int   `json:"X"`
-	Y        int   `json:"Y"`
-	RegionID int32 `json:"regionId,omitempty"`
+	Coords   []Coord `json:"coords"`
+	RegionID int32   `json:"regionId,omitempty"`
 	ID       DestinationID
 
 	Name     string  `json:"name"`
 	Events   []event `json:"events"`
-	Radius   float64 `json:"radius"`
 	MeanTime float64 `json:"meanUseTime"`
 	VarTime  float64 `json:"useTimeVar"`
+}
+
+type Coord struct {
+	X int     `json:"x"`
+	Y int     `json:"y"`
+	R float64 `json:"r"`
 }
 
 type event struct {
@@ -57,11 +60,14 @@ func (s *State) LoadScenario(path string) {
 	idCount := 1
 	for i, d := range scenario.Destinations {
 		if d.RegionID > 0 {
-			scenario.Destinations[i].X = int(s.FindRegion(d.RegionID).X)
-			scenario.Destinations[i].Y = int(s.FindRegion(d.RegionID).Y)
-			scenario.Destinations[i].Radius = float64(int(s.FindRegion(d.RegionID).Radius))
+			region := s.FindRegion(d.RegionID)
+			coord := Coord{
+				X: int(region.X),
+				Y: int(region.Y),
+				R: float64(region.Radius),
+			}
+			scenario.Destinations[i].Coords = append(scenario.Destinations[i].Coords, coord)
 		}
-		log.Println(scenario.Destinations[i].Name, " - ", scenario.Destinations[i].X, ",", scenario.Destinations[i].Y)
 		scenario.Destinations[i].ID = DestinationID{idCount}
 		idCount++
 	}
@@ -135,4 +141,24 @@ func (d *Destination) NextEventToEnd(t time.Time) *event {
 		return nil
 	}
 	return &d.Events[ret]
+}
+
+func (d *Destination) Contains(x, y int) bool {
+	for _, c := range d.Coords {
+		dxsq := (c.X - x) * (c.X - x)
+		dysq := (c.Y - y) * (c.Y - y)
+		if int(c.R*c.R) > dxsq+dysq {
+			return true
+		}
+	}
+	return false
+}
+
+func (d *Destination) ContainsCenter(x, y int) bool {
+	for _, c := range d.Coords {
+		if c.X == x && c.Y == y {
+			return true
+		}
+	}
+	return false
 }

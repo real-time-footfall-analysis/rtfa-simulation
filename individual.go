@@ -55,9 +55,7 @@ func (i *Individual) Next(w *State) DestinationID {
 	}
 	dest := w.scenario.GetDestination(i.target.ID)
 	x, y := i.Loc.GetXY()
-	dx := float64(dest.X) - x
-	dy := float64(dest.Y) - y
-	if dx*dx+dy*dy < dest.Radius*dest.Radius {
+	if dest.Contains(int(x), int(y)) {
 		// inside target
 		if i.leaveTime.IsZero() {
 			dest := w.scenario.GetDestination(i.target.ID)
@@ -128,9 +126,7 @@ func (a *Individual) requestedDestination(w *State) DestinationID {
 func (i *Individual) DirectionForDestination(dest DestinationID, w *State) utils.OptionalFloat64 {
 
 	x, y := i.Loc.GetXY()
-	dx := float64(i.target.X) - x
-	dy := float64(i.target.Y) - y
-	if dx*dx+dy*dy < i.target.Radius*i.target.Radius {
+	if i.target.Contains(int(x), int(y)) {
 		// inside the area
 		if rand.Float64() < 0.4 {
 			return utils.OptionalFloat64WithValue((rand.Float64() - 0.5) * 2 * math.Pi)
