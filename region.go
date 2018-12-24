@@ -65,7 +65,11 @@ func (s *State) LoadRegions(path string, lat, lng float64) {
 
 	if s.BulkSend {
 		updateChannel = make(chan []byte, 50)
-		startBulkConsumer(updateChannel)
+		if s.SendUpdates {
+			startBulkConsumer(updateChannel)
+		} else {
+			startVoidBulkConsumer(updateChannel)
+		}
 	}
 
 }
@@ -83,7 +87,7 @@ func latLngToCoords(lat, lng, latOrigin, lngOrigin float64) (float64, float64) {
 	return x, y
 }
 
-func UpdateServer(regions *[]Region, individual *Individual, time time.Time, bulk bool) {
+func UpdateRegions(regions *[]Region, individual *Individual, time time.Time, bulk, send bool) {
 	for _, r := range *regions {
 		x, y := individual.Loc.GetLatestXY()
 		dx := x - r.X
@@ -99,7 +103,9 @@ func UpdateServer(regions *[]Region, individual *Individual, time time.Time, bul
 				if bulk {
 					*bulkUpdate = append(*bulkUpdate, u)
 				} else {
-					sendUpdate(&u)
+					if send {
+						sendUpdate(&u)
+					}
 				}
 
 			}
@@ -113,7 +119,9 @@ func UpdateServer(regions *[]Region, individual *Individual, time time.Time, bul
 				if bulk {
 					*bulkUpdate = append(*bulkUpdate, u)
 				} else {
-					sendUpdate(&u)
+					if send {
+						sendUpdate(&u)
+					}
 				}
 			}
 		}
@@ -162,11 +170,13 @@ const bulkUrl = "http://api.jackchorley.club/bulkUpdate"
 
 var bulkUpdate *[]update
 var updateChannel chan []byte
+var totalUpdates int
 
 func SendBulk() {
 	if bulkUpdate == nil || len(*bulkUpdate) < 10 {
 		return
 	}
+	totalUpdates += len(*bulkUpdate)
 	updateList := bulkUpdate
 	newList := make([]update, 0)
 	bulkUpdate = &newList
@@ -176,6 +186,7 @@ func SendBulk() {
 		log.Fatal("Cannot marshal bulk update:")
 	}
 	updateChannel <- jsonStr
+	log.Println("total updates so far:", totalUpdates)
 }
 
 func startBulkConsumer(jsonChannel chan []byte) {
@@ -183,7 +194,6 @@ func startBulkConsumer(jsonChannel chan []byte) {
 		for {
 			jsonStr := <-jsonChannel
 			log.Println(len(jsonChannel), " updates buffered")
-			continue
 			buffer := bytes.NewBuffer(jsonStr)
 			req, err := http.NewRequest("POST", bulkUrl, buffer)
 			//req.Header.Set("X-Custom-Header", "myvalue")
@@ -199,6 +209,15 @@ func startBulkConsumer(jsonChannel chan []byte) {
 					log.Println("cannot close http response, don't care")
 				}
 			}
+		}
+	}()
+}
+
+func startVoidBulkConsumer(jsonChannel chan []byte) {
+	go func() {
+		for {
+			<-jsonChannel
+			log.Println("Bulk update Voided")
 		}
 	}()
 }
