@@ -2,7 +2,6 @@ package main
 
 import (
 	"fmt"
-	"golang.org/x/image/colornames"
 	"image"
 	"image/color"
 	_ "image/png"
@@ -41,6 +40,7 @@ func LoadFromImage(path string) State {
 			world.tiles[x][y].blockedEast = blockedEast(c)
 			world.tiles[x][y].blockedSouth = blockedSouth(c)
 			world.tiles[x][y].blockedWest = blockedWest(c)
+			world.tiles[x][y].destID = destID(c)
 			if world.tiles[x][y].blockedNorth || world.tiles[x][y].blockedEast || world.tiles[x][y].blockedSouth || world.tiles[x][y].blockedWest {
 				log.Println("BLOCKING")
 			}
@@ -49,6 +49,11 @@ func LoadFromImage(path string) State {
 	fmt.Println("tiles size", len(world.tiles), len(world.tiles[0]))
 
 	return world
+}
+
+func destID(c color.Color) uint32 {
+	_, g, _, _ := c.RGBA()
+	return g
 }
 
 func sameColour(a, b color.Color) bool {
@@ -66,11 +71,11 @@ func blockedNorth(c color.Color) bool {
 	return sameColour(c, color.RGBA{R: 0, G: 0, B: 255, A: 255})
 }
 func blockedEast(c color.Color) bool {
-	return sameColour(c, colornames.Yellow)
+	return sameColour(c, color.RGBA{R: 255, G: 0, B: 255, A: 255})
 }
 func blockedSouth(c color.Color) bool {
 	return sameColour(c, color.RGBA{R: 251, G: 0, B: 7, A: 255})
 }
 func blockedWest(c color.Color) bool {
-	return sameColour(c, colornames.Green)
+	return sameColour(c, color.RGBA{R: 120, G: 0, B: 120, A: 255})
 }

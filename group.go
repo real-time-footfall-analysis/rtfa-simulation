@@ -10,10 +10,10 @@ type Group struct {
 
 func (g *Group) Next(channel chan map[*Individual]utils.OptionalFloat64, w *State) {
 
-	dests := make(map[Destination]int, 0)
+	dests := make(map[DestinationID]int, 0)
 	bestVal := 0
 
-	// Get each destination that someone would like to go to, and tally them up
+	// Get each Destination that someone would like to go to, and tally them up
 	for _, individual := range g.Individuals {
 		dest := individual.Next(w)
 
@@ -33,8 +33,8 @@ func (g *Group) Next(channel chan map[*Individual]utils.OptionalFloat64, w *Stat
 		}
 	}
 
-	var chosenDest Destination
-	// Return the destination with the highest weight
+	var chosenDest DestinationID
+	// Return the Destination with the highest weight
 	for dest, val := range dests {
 		if val == bestVal {
 			chosenDest = dest

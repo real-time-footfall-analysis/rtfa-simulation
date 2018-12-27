@@ -11,7 +11,7 @@ import (
 )
 
 type Likelihood struct {
-	Destination          Destination            // If this likelihood is picked - where should we go
+	Destination          DestinationID          // If this likelihood is picked - where should we go
 	ProbabilityFunctions []func(time.Time) bool // Array of mutually exclusive functions to return "true" when we should use the corresponding probability
 	Probabilities        []float64              // Array of probabilities. MUST be same cardinality as the above.
 }
@@ -25,11 +25,11 @@ type Individual struct {
 	UUID         string         // UUID of this actor for sending updates
 	Colour       color.Color    // colour to render this individual
 	LastMoveDist float64
-	MoveDistAvg  float64     /// running avg of movements
-	CurrentOri   float64     // Current orientation
-	CurrentSway  float64     // Current sway
-	target       Destination // current target destination
-	leaveTime    time.Time   // time to leave current place
+	MoveDistAvg  float64      /// running avg of movements
+	CurrentOri   float64      // Current orientation
+	CurrentSway  float64      // Current sway
+	target       *Destination // current target Destination
+	leaveTime    time.Time    // time to leave current place
 }
 
 const (
@@ -46,20 +46,19 @@ func (l *Likelihood) ProbabilityAtTick(time time.Time) float64 {
 	return bestProb
 }
 
-func (i *Individual) Next(w *State) Destination {
+func (i *Individual) Next(w *State) DestinationID {
 
-	nilDest := Destination{}
-	if i.target == nilDest {
-		i.target = i.requestedDestination(w)
-		return i.target
+	if i.target == nil {
+		destID := i.requestedDestination(w)
+		i.target = w.scenario.GetDestination(destID)
+		return destID
 	}
+	dest := w.scenario.GetDestination(i.target.ID)
 	x, y := i.Loc.GetXY()
-	dx := float64(i.target.X) - x
-	dy := float64(i.target.Y) - y
-	if dx*dx+dy*dy < i.target.R*i.target.R {
+	if dest.Contains(int(x), int(y)) {
 		// inside target
 		if i.leaveTime.IsZero() {
-			dest := w.scenario.GetDestination(i.target)
+			dest := w.scenario.GetDestination(i.target.ID)
 			if dest.MeanTime == 0 {
 				event := dest.NextEventToEnd(w.time)
 				if event == nil {
@@ -73,25 +72,26 @@ func (i *Individual) Next(w *State) Destination {
 			}
 		}
 		if w.time.Before(i.leaveTime) {
-			return i.target
+			return i.target.ID
 		} else {
 			i.leaveTime = time.Time{}
-			i.target = i.requestedDestination(w)
-			return i.target
+			destID := i.requestedDestination(w)
+			i.target = w.scenario.GetDestination(destID)
+			return destID
 		}
 	} else {
 		// outside target
-		return i.target
+		return i.target.ID
 	}
 
 }
 
 type ProbabilityPair struct {
 	prob float64
-	dest Destination
+	dest DestinationID
 }
 
-func (a *Individual) requestedDestination(w *State) Destination {
+func (a *Individual) requestedDestination(w *State) DestinationID {
 	// Get all of the likelihood probabilities
 	var sum float64 = 0
 	probs := make([]ProbabilityPair, 0)
@@ -115,7 +115,7 @@ func (a *Individual) requestedDestination(w *State) Destination {
 	for _, prob := range probs {
 		sumSoFar += prob.prob
 		if randPick < sumSoFar {
-			// Return the destination
+			// Return the Destination
 			return prob.dest
 		}
 	}
@@ -123,12 +123,10 @@ func (a *Individual) requestedDestination(w *State) Destination {
 	return probs[0].dest
 }
 
-func (i *Individual) DirectionForDestination(dest Destination, w *State) utils.OptionalFloat64 {
+func (i *Individual) DirectionForDestination(dest DestinationID, w *State) utils.OptionalFloat64 {
 
 	x, y := i.Loc.GetXY()
-	dx := float64(i.target.X) - x
-	dy := float64(i.target.Y) - y
-	if dx*dx+dy*dy < i.target.R*i.target.R {
+	if i.target.Contains(int(x), int(y)) {
 		// inside the area
 		if rand.Float64() < 0.4 {
 			return utils.OptionalFloat64WithValue((rand.Float64() - 0.5) * 2 * math.Pi)

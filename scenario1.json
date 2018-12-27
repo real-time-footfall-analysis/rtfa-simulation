@@ -1,14 +1,14 @@
 {"start": "2018-11-23T07:00:00.000Z", "end":"2018-11-23T21:00:00.000Z",
-  "entranceX": 650, "entranceY":275, "totalPeople": 5000, "totalGroups": 5000,
+  "entrance":[{"x": 695, "y":279, "r": 0.3}, {"x": 312, "y":65, "r": 0.3}], "totalPeople": 5000, "totalGroups": 5000,
   "exit":{
-    "x":365, "y": 300, "regionId": 0, "comment":" use either x,y or regionID to use an accosiated regionID's position*",
+    "coords":[{"x":401, "y": 320, "r":5}, {"x":661, "y": 157, "r":5}, {"x":71, "y": 198, "r":5}], "regionId": 0,
     "name": "exit gate", "events": [
       {"name": "General Exit", "start": "2018-11-23T08:00:00.000Z", "end": "2018-11-23T19:00:00.000Z", "popularity": 0.1},
       {"name": "Home Time", "start": "2018-11-23T16:30:00.000Z", "end": "2018-11-23T19:00:00.000Z", "popularity": 0.3},
       {"name": "Closing Time", "start": "2018-11-23T18:30:00.000Z", "end": "2018-11-23T21:00:00.000Z", "popularity": 0.99}
     ]},
   "destinations":[
-    {"regionId": 20, "meanUseTime":600, "useTimeVar":100, "comment":" use either x,y or regionID to use an accosiated regionID's position*",
+    {"regionId": 20, "meanUseTime":600, "useTimeVar":100,
       "name": "Cafe", "events": [
         {"name": "General Food", "start": "2018-11-23T07:00:00.000Z", "end": "2018-11-23T18:00:00.000Z", "popularity": 0.2},
         {"name": "Breakfast", "start": "2018-11-23T07:30:00.000Z", "end": "2018-11-23T09:00:00.000Z", "popularity": 0.3},
@@ -16,14 +16,14 @@
         {"name": "Dinner", "start": "2018-11-23T17:00:00.000Z", "end": "2018-11-23T19:00:00.000Z", "popularity": 0.3}
       ]
     },
-    {"regionId": 21, "meanUseTime":120, "useTimeVar":100, "comment":" use either x,y or regionID to use an accosiated regionID's position*",
+    {"regionId": 21, "meanUseTime":120, "useTimeVar":100,
       "name": "Toilet", "events": [
         {"name": "General Use", "start": "2018-11-23T07:00:00.000Z", "end": "2018-11-23T18:30:00.000Z", "popularity": 0.2},
         {"name": "Post Lunch", "start": "2018-11-23T13:00:00.000Z", "end": "2018-11-23T14:30:00.000Z", "popularity": 0.5},
         {"name": "Post Dinner", "start": "2018-11-23T17:30:00.000Z", "end": "2018-11-23T19:30:00.000Z", "popularity": 0.3}
       ]
     },
-    {"regionId": 22, "meanUseTime":0, "useTimeVar":0, "comment":" use either x,y or regionID to use an accosiated regionID's position*",
+    {"regionId": 22, "meanUseTime":0, "useTimeVar":0,
       "name": "Recreation Area", "events": [
         {"name": "welcome", "start": "2018-11-23T07:00:00.000Z", "end": "2018-11-23T08:00:00.000Z", "popularity": 0.4},
         {"name": "morning event", "start": "2018-11-23T08:30:00.000Z", "end": "2018-11-23T10:30:00.000Z", "popularity": 0.2},
@@ -31,20 +31,20 @@
         {"name": "Evening", "start": "2018-11-23T16:00:00.000Z", "end": "2018-11-23T18:30:00.000Z", "popularity": 0.3}
       ]
     },
-    {"regionId": 23, "meanUseTime":600, "useTimeVar":100, "comment":" use either x,y or regionID to use an accosiated regionID's position*",
+    {"regionId": 23, "meanUseTime":600, "useTimeVar":100,
       "name": "Shop", "events": [
         {"name": "General Use", "start": "2018-11-23T07:00:00.000Z", "end": "2018-11-23T18:30:00.000Z", "popularity": 0.3},
         {"name": "Late Day", "start": "2018-11-23T17:00:00.000Z", "end": "2018-11-23T18:30:00.000Z", "popularity": 0.5}
       ]
     },
-    {"regionId": 24, "meanUseTime":60, "useTimeVar":60, "comment":" use either x,y or regionID to use an accosiated regionID's position*",
+    {"regionId": 24, "meanUseTime":60, "useTimeVar":60,
       "name": "Boris Bikes", "events": [
       {"name": "General Use", "start": "2018-11-23T07:00:00.000Z", "end": "2018-11-23T18:30:00.000Z", "popularity": 0.1},
       {"name": "Early Rush", "start": "2018-11-23T07:00:00.000Z", "end": "2018-11-23T08:00:00.000Z", "popularity": 0.6},
       {"name": "Late Rush", "start": "2018-11-23T17:00:00.000Z", "end": "2018-11-23T18:00:00.000Z", "popularity": 0.6}
     ]
     },
-    {"x":465, "y":  133, "regionId": 0, "radius":20, "meanUseTime":600, "useTimeVar":200, "comment":" use either x,y or regionID to use an accosiated regionID's position*",
+    {"coords":[{"x":465, "y": 133, "r": 20}], "regionId": 0, "meanUseTime":600, "useTimeVar":200,
       "name": "Food Court", "events": [
       {"name": "General Food", "start": "2018-11-23T07:00:00.000Z", "end": "2018-11-23T18:00:00.000Z", "popularity": 0.1},
       {"name": "Breakfast", "start": "2018-11-23T07:30:00.000Z", "end": "2018-11-23T10:00:00.000Z", "popularity": 0.1},
@@ -52,14 +52,14 @@
       {"name": "Dinner", "start": "2018-11-23T17:00:00.000Z", "end": "2018-11-23T18:00:00.000Z", "popularity": 0.1}
     ]
     },
-    {"x":167, "y":  298, "regionId": 0, "radius":20, "meanUseTime":120, "useTimeVar":100, "comment":" use either x,y or regionID to use an accosiated regionID's position*",
+    {"coords":[{"x":167, "y": 298, "r": 20}], "regionId": 0, "meanUseTime":120, "useTimeVar":100,
       "name": "Toilet2", "events": [
       {"name": "General Use", "start": "2018-11-23T07:00:00.000Z", "end": "2018-11-23T18:30:00.000Z", "popularity": 0.2},
       {"name": "Post Lunch", "start": "2018-11-23T13:00:00.000Z", "end": "2018-11-23T14:30:00.000Z", "popularity": 0.5},
       {"name": "Post Dinner", "start": "2018-11-23T17:30:00.000Z", "end": "2018-11-23T19:30:00.000Z", "popularity": 0.3}
     ]
     },
-    {"x":663, "y":  207, "regionId": 0, "radius":25, "meanUseTime":120, "useTimeVar":100, "comment":" use either x,y or regionID to use an accosiated regionID's position*",
+    {"coords":[{"x":663, "y": 207, "r": 25}], "regionId": 0, "meanUseTime":120, "useTimeVar":100,
       "name": "Bar", "events": [
       {"name": "General Use", "start": "2018-11-23T07:00:00.000Z", "end": "2018-11-23T18:30:00.000Z", "popularity": 0.2},
       {"name": "Lunch", "start": "2018-11-23T12:00:00.000Z", "end": "2018-11-23T13:00:00.000Z", "popularity": 0.5},

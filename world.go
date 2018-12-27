@@ -16,9 +16,8 @@ type Tile struct {
 	walkable   bool
 	People     []*Individual
 	HitCount   int
-	Dists      map[Destination]float64 // Used internally for dijkstra
-	Directions map[Destination]utils.OptionalFloat64
-	DestTile   *Destination // TODO: remove
+	Dists      map[DestinationID]float64 // Used internally for dijkstra
+	Directions map[DestinationID]utils.OptionalFloat64
 	X          int
 	Y          int
 
@@ -26,6 +25,8 @@ type Tile struct {
 	blockedEast  bool
 	blockedSouth bool
 	blockedWest  bool
+
+	destID uint32
 }
 
 func (t *Tile) Walkable() bool {
@@ -87,11 +88,14 @@ var counter int = 0
 func (w *State) AddRandom() *Individual {
 
 	for i := 0; i < 100; i++ {
-		x := w.scenario.EntranceX
-		y := w.scenario.EntranceY
-		xf := rand.Float64()
-		yf := rand.Float64()
-		tile := w.GetTile(x, y)
+		randi := rand.Int() % len(w.scenario.Entrances)
+		x := w.scenario.Entrances[randi].X
+		y := w.scenario.Entrances[randi].Y
+		theta := rand.Float64() * 2 * math.Pi
+		radius := rand.Float64() * w.scenario.Entrances[randi].R
+		xf := radius * math.Cos(theta)
+		yf := radius * math.Sin(theta)
+		tile := w.GetTile(int(float64(x)+xf), int(float64(y)+yf))
 		if tile.Walkable() && !w.IntersectsAnyone(float64(x)+xf, float64(y)+yf) {
 			r, g, b := color.YCbCrToRGB(uint8(100), uint8(rand.Intn(256)), uint8(rand.Intn(256)))
 			c := color.RGBA{r, g, b, 255}
@@ -104,7 +108,7 @@ func (w *State) AddRandom() *Individual {
 				Tick:        0,
 				StepSize:    0.2,
 				Likelihoods: w.scenario.GenerateRandomPersonality(),
-				RegionIds:   make(map[int32]bool, len(w.Regions)),
+				RegionIds:   make(map[int32]bool),
 			}
 			tile.People = append(tile.People, &person)
 			counter++
@@ -144,7 +148,7 @@ func (w *State) MoveIndividual(person *Individual, theta float64, distance float
 			}
 
 			tile.People = append(tile.People[:pos], tile.People[pos+1:]...)
-			if int(nx) != w.scenario.Exit.X || int(ny) != w.scenario.Exit.Y {
+			if !w.scenario.Exit.Contains(int(nx), int(ny)) {
 				newTile := w.GetTile(int(nx), int(ny))
 				newTile.People = append(newTile.People, person)
 			} else {
@@ -177,7 +181,7 @@ func (w *State) MoveIndividual(person *Individual, theta float64, distance float
 				}
 				w.groups[gPos].Individuals = append(w.groups[gPos].Individuals[:iPos], w.groups[gPos].Individuals[iPos+1:]...)
 				w.allPeople = append(w.allPeople[:allPos], w.allPeople[allPos+1:]...)
-				LeaveAllRegions(&w.Regions, person, w.time, w.BulkSend)
+				LeaveAllRegions(w, person, w.time, w.BulkSend)
 			}
 		}
 	} else {

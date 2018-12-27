@@ -160,6 +160,7 @@ func (r *RenderState) Step() bool {
 			r.SetTileColour(px, py, color.Black)
 			if r.world != nil {
 				tx, ty := r.GetWorldPos(e)
+				log.Println("picked ", tx, ty)
 				if tx >= 0 {
 					r.world.GetTile(tx, ty).SetWalkable(false)
 				}

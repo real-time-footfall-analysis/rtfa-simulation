@@ -11,24 +11,29 @@ import (
 type Scenario struct {
 	Start        time.Time     `json:"start,string"`
 	End          time.Time     `json:"end,string"`
-	EntranceX    int           `json:"entranceX"`
-	EntranceY    int           `json:"entranceY"`
-	Exit         destination   `json:"exit"`
+	Entrances    []Coord       `json:"entrance"`
+	Exit         Destination   `json:"exit"`
 	TotalPeople  int           `json:"totalPeople"`
 	TotalGroups  int           `json:"totalGroups"`
-	Destinations []destination `json:"destinations"`
+	Destinations []Destination `json:"Destinations"`
+	destMap      map[int]*Destination
 }
 
-type destination struct {
-	X        int   `json:"X"`
-	Y        int   `json:"Y"`
-	RegionID int32 `json:"regionId,omitempty"`
+type Destination struct {
+	Coords   []Coord `json:"coords"`
+	RegionID int32   `json:"regionId,omitempty"`
+	ID       DestinationID
 
 	Name     string  `json:"name"`
 	Events   []event `json:"events"`
-	Radius   float64 `json:"radius"`
 	MeanTime float64 `json:"meanUseTime"`
 	VarTime  float64 `json:"useTimeVar"`
+}
+
+type Coord struct {
+	X int     `json:"x"`
+	Y int     `json:"y"`
+	R float64 `json:"r"`
 }
 
 type event struct {
@@ -51,16 +56,28 @@ func (s *State) LoadScenario(path string) {
 		log.Fatal("parsing config file", err.Error())
 	}
 
+	scenario.destMap = make(map[int]*Destination)
+	idCount := 1
 	for i, d := range scenario.Destinations {
 		if d.RegionID > 0 {
-			scenario.Destinations[i].X = int(s.FindRegion(d.RegionID).X)
-			scenario.Destinations[i].Y = int(s.FindRegion(d.RegionID).Y)
-			scenario.Destinations[i].Radius = float64(int(s.FindRegion(d.RegionID).Radius))
+			region := s.FindRegion(d.RegionID)
+			coord := Coord{
+				X: int(region.X),
+				Y: int(region.Y),
+				R: float64(region.Radius),
+			}
+			scenario.Destinations[i].Coords = append(scenario.Destinations[i].Coords, coord)
 		}
-		log.Println(scenario.Destinations[i].Name, " - ", scenario.Destinations[i].X, ",", scenario.Destinations[i].Y)
+		scenario.Destinations[i].ID = DestinationID{idCount}
+		idCount++
 	}
 
+	scenario.Exit.ID = DestinationID{idCount}
 	scenario.Destinations = append(scenario.Destinations, scenario.Exit)
+
+	for i, d := range scenario.Destinations {
+		scenario.destMap[d.ID.ID] = &scenario.Destinations[i]
+	}
 
 	log.Println(scenario)
 	log.Println(scenario.Destinations[0].Events[0].Start)
@@ -79,22 +96,13 @@ func (s *Scenario) GenerateRandomPersonality() []Likelihood {
 	return ls
 }
 
-func (s *Scenario) GetDestination(target Destination) *destination {
-	for i, d := range s.Destinations {
-		if d.X == target.X && d.Y == target.Y && d.Radius == target.R {
-			return &s.Destinations[i]
-		}
-	}
-	return nil
+func (s *Scenario) GetDestination(target DestinationID) *Destination {
+	return s.destMap[target.ID]
 }
 
-func (d *destination) GenerateRandomLikelihood() Likelihood {
+func (d *Destination) GenerateRandomLikelihood() Likelihood {
 	l := Likelihood{
-		Destination: Destination{
-			X: d.X,
-			Y: d.Y,
-			R: d.Radius,
-		},
+		Destination: d.ID,
 	}
 
 	for _, e := range d.Events {
@@ -118,7 +126,7 @@ func (d *destination) GenerateRandomLikelihood() Likelihood {
 
 }
 
-func (d *destination) NextEventToEnd(t time.Time) *event {
+func (d *Destination) NextEventToEnd(t time.Time) *event {
 	earliest := time.Unix(1<<63-62135596801, 999999999)
 	ret := -1
 	for i, e := range d.Events {
@@ -133,4 +141,24 @@ func (d *destination) NextEventToEnd(t time.Time) *event {
 		return nil
 	}
 	return &d.Events[ret]
+}
+
+func (d *Destination) Contains(x, y int) bool {
+	for _, c := range d.Coords {
+		dxsq := (c.X - x) * (c.X - x)
+		dysq := (c.Y - y) * (c.Y - y)
+		if int(c.R*c.R) > dxsq+dysq {
+			return true
+		}
+	}
+	return false
+}
+
+func (d *Destination) ContainsCenter(x, y int) bool {
+	for _, c := range d.Coords {
+		if c.X == x && c.Y == y {
+			return true
+		}
+	}
+	return false
 }

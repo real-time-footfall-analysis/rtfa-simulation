@@ -21,7 +21,7 @@ func initDeltas() {
 
 }
 
-func FindShortestPath(w *State, destination Destination) error {
+func FindShortestPath(w *State, destination DestinationID) error {
 
 	// Queue to hold fringe verticies
 	queue, _ := initQueue(w, destination)
@@ -58,8 +58,8 @@ func FindShortestPath(w *State, destination Destination) error {
 
 // Initialises queue, adding all nodes and setting distance to infinity
 // Nodes which we can reach
-func initQueue(w *State, dest Destination) (*pq.PriorityQueue, error) {
-
+func initQueue(w *State, destID DestinationID) (*pq.PriorityQueue, error) {
+	dest := w.scenario.GetDestination(destID)
 	// Initialise the queue
 	queue := pq.New()
 
@@ -70,37 +70,39 @@ func initQueue(w *State, dest Destination) (*pq.PriorityQueue, error) {
 			tile := w.GetTile(i, j)
 
 			if tile.Dists == nil {
-				tile.Dists = make(map[Destination]float64)
+				tile.Dists = make(map[DestinationID]float64)
 			}
 
 			// Set the direction for un-walkable tiles to be none
 			if !tile.Walkable() {
-				tile.Dists[dest] = math.Inf(1)
+				tile.Dists[destID] = math.Inf(1)
 			}
 
-			// Skip the destination and tiles we can't walk on
-			if !tile.Walkable() || (i == dest.X && j == dest.Y) {
+			// Skip the Destination and tiles we can't walk on
+			if !tile.Walkable() || (dest.ContainsCenter(i, j)) {
 				continue
 			}
 
-			tile.Dists[dest] = math.Inf(1)
-			queue.Insert(tile, tile.Dists[dest])
+			tile.Dists[destID] = math.Inf(1)
+			queue.Insert(tile, tile.Dists[destID])
 
 		}
 
 	}
 
-	// Insert the destination with distance 0
-	destTile := w.GetTile(dest.X, dest.Y)
-	if destTile.Dists == nil {
-		destTile.Dists = make(map[Destination]float64)
-	}
-	if destTile.Directions == nil {
-		destTile.Directions = make(map[Destination]utils.OptionalFloat64)
-	}
-	destTile.Dists[dest] = 0
-	queue.Insert(destTile, destTile.Dists[dest])
+	// Insert the Destination with distance 0
+	for _, c := range dest.Coords {
 
+		destTile := w.GetTile(c.X, c.Y)
+		if destTile.Dists == nil {
+			destTile.Dists = make(map[DestinationID]float64)
+		}
+		if destTile.Directions == nil {
+			destTile.Directions = make(map[DestinationID]utils.OptionalFloat64)
+		}
+		destTile.Dists[destID] = 0
+		queue.Insert(destTile, destTile.Dists[destID])
+	}
 	return &queue, nil
 
 }
