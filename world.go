@@ -95,7 +95,6 @@ func (w *State) AddRandom() *Individual {
 		radius := rand.Float64() * w.scenario.Entrances[randi].R
 		xf := radius * math.Cos(theta)
 		yf := radius * math.Sin(theta)
-		log.Println("entering attempt at: ", x, y, xf, yf)
 		tile := w.GetTile(int(float64(x)+xf), int(float64(y)+yf))
 		if tile.Walkable() && !w.IntersectsAnyone(float64(x)+xf, float64(y)+yf) {
 			r, g, b := color.YCbCrToRGB(uint8(100), uint8(rand.Intn(256)), uint8(rand.Intn(256)))
