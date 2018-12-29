@@ -33,7 +33,7 @@ type RenderState struct {
 	i               image.Image
 	mousePressed    bool
 	world           *State
-	info            ControlPanel
+	controlPanel    ControlPanel
 
 	highlight highlight
 }
@@ -113,7 +113,7 @@ func SetupRender(s screen.Screen, original image.Image, regions *[]Region, state
 
 	r.windowScale = float64(1)
 
-	r.info.start(s)
+	r.controlPanel.start(s)
 
 	return r
 }
