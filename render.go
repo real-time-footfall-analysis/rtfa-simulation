@@ -61,7 +61,7 @@ func SetupRender(s screen.Screen, original image.Image, regions *[]Region, state
 
 	nx, ny := r.loadOriginal(original)
 
-	size0 := image.Point{nx, ny}
+	size0 := image.Point{X: nx, Y: ny}
 
 	b, err := s.NewBuffer(size0)
 	if err != nil {
@@ -105,7 +105,7 @@ func SetupRender(s screen.Screen, original image.Image, regions *[]Region, state
 	for _, region := range *regions {
 		fmt.Println("region: ", region.Name, region.X, region.Y)
 		red, green, blue := color.YCbCrToRGB(uint8(50), uint8(rand.Intn(256)), uint8(rand.Intn(256)))
-		c := color.RGBA{red, green, blue, 150}
+		c := color.RGBA{R: red, G: green, B: blue, A: 150}
 		drawRegionInBuffer(&r, region.X, region.Y, c, region.Radius)
 	}
 
@@ -128,9 +128,9 @@ func (r *RenderState) loadOriginal(original image.Image) (int, int) {
 }
 
 func (r *RenderState) resetPeopleBuffer() {
-	size := r.b.Size()
+	bufferSize := r.b.Size()
 	r.b.Release()
-	b, err := r.s.NewBuffer(size)
+	b, err := r.s.NewBuffer(bufferSize)
 	if err != nil {
 		log.Fatal(err)
 	}
