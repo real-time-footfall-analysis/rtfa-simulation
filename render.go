@@ -3,6 +3,7 @@ package main
 import (
 	"fmt"
 	"golang.org/x/exp/shiny/screen"
+	"golang.org/x/image/colornames"
 	draw2 "golang.org/x/image/draw"
 	"golang.org/x/image/math/f64"
 	"golang.org/x/mobile/event/lifecycle"
@@ -32,14 +33,24 @@ type RenderState struct {
 	i               image.Image
 	mousePressed    bool
 	world           *State
+	info            ControlPanel
+
+	highlight highlight
+}
+
+type highlight struct {
+	infoSet    bool
+	colour     color.Color
+	oldX, oldY int
 }
 
 type UpdateEvent struct {
 	World *State
 }
 
-func SetupRender(s screen.Screen, original image.Image, regions *[]Region) RenderState {
+func SetupRender(s screen.Screen, original image.Image, regions *[]Region, state *State) RenderState {
 	r := RenderState{s: s}
+	r.world = state
 
 	r.backgroundScale = 1
 	window, err := s.NewWindow(nil)
@@ -102,6 +113,8 @@ func SetupRender(s screen.Screen, original image.Image, regions *[]Region) Rende
 
 	r.windowScale = float64(1)
 
+	r.info.start(s)
+
 	return r
 }
 
@@ -140,6 +153,7 @@ func (r *RenderState) Step() bool {
 	}
 	fmt.Printf(format, e)
 	*/
+
 	switch e := e.(type) {
 	case lifecycle.Event:
 		if e.To == lifecycle.StageDead {
@@ -151,22 +165,29 @@ func (r *RenderState) Step() bool {
 		if e.Button == mouse.ButtonLeft {
 			if e.Direction == mouse.DirPress {
 				r.mousePressed = true
+				if r.highlight.infoSet {
+					log.Println("test")
+					px, py := r.GetPixelPos(r.highlight.oldX, r.highlight.oldY)
+					r.SetTileColour(px, py, r.highlight.colour)
+				}
+				r.highlight.infoSet = true
+				r.highlight.oldX, r.highlight.oldY = r.GetWorldPos(e)
+				px, py := r.GetPixelPos(r.highlight.oldX, r.highlight.oldY)
+				r.highlight.colour = r.GetTileColour(px, py)
+				r.SetTileColour(px, py, colornames.Darkslategrey)
+
+				if r.world != nil {
+					log.Println("send event")
+					tile := r.world.GetTile(r.highlight.oldX, r.highlight.oldY)
+					log.Println("tile: " + string(tile.X) + string(tile.Y))
+				}
+
 			} else if e.Direction == mouse.DirRelease {
 				r.mousePressed = false
 			}
-		}
-		if r.mousePressed {
-			px, py := r.GetPixelPos(r.GetWorldPos(e))
-			r.SetTileColour(px, py, color.Black)
-			if r.world != nil {
-				tx, ty := r.GetWorldPos(e)
-				log.Println("picked ", tx, ty)
-				if tx >= 0 {
-					r.world.GetTile(tx, ty).SetWalkable(false)
-				}
-			}
 			r.Redraw()
 		}
+
 	case size.Event:
 		r.sz = e
 		xs := float64(r.sz.WidthPx) / float64(r.b.Bounds().Dx())
@@ -260,9 +281,13 @@ func (r *RenderState) SetTileColour(px, py int, colour color.Color) {
 
 }
 
-func (r *RenderState) GetPixelPos(px, py int) (int, int) {
-	px = px * r.backgroundScale
-	py = py * r.backgroundScale
+func (r *RenderState) GetTileColour(px, py int) color.Color {
+	return r.bb.RGBA().At(px, py)
+}
+
+func (r *RenderState) GetPixelPos(x, y int) (int, int) {
+	px := x * r.backgroundScale
+	py := y * r.backgroundScale
 	return px, py
 }
 

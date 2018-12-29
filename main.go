@@ -34,7 +34,7 @@ func main() {
 	fmt.Println()*/
 
 	driver.Main(func(s screen.Screen) {
-		r := SetupRender(s, w.GetImage(), &w.Regions)
+		r := SetupRender(s, w.GetImage(), &w.Regions, &w)
 		defer r.Release()
 
 		go simulate(&w, &r)
