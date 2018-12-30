@@ -48,6 +48,8 @@ type State struct {
 	allPeople          []*Individual
 	time               time.Time
 	BulkSend           bool
+	maxSenders         int
+	currentSenders     int
 	SendUpdates        bool
 	peopletoAdd        int
 	scenario           Scenario
@@ -58,6 +60,9 @@ type State struct {
 	peopleAddedChan    chan int
 	peopleCurrentChan  chan int
 	simulationTimeChan chan time.Time
+	currentSendersChan chan int
+	totalSendsChan     chan int
+	highlightActive    bool
 }
 
 func (w *State) GetWidth() int {
@@ -105,6 +110,8 @@ func (w *State) AddRandom() *Individual {
 
 			name := fmt.Sprintf("SimBot-%029d", counter)
 			//randSetIndex := rand.Intn(4)
+			sendUpdates := w.maxSenders > w.currentSenders
+			sendUpdates = sendUpdates && rand.Intn(w.scenario.TotalPeople-w.peopleAdded) <= (w.maxSenders-w.currentSenders)
 			person := Individual{
 				Loc:    geometry.NewPoint(float64(x)+xf, float64(y)+yf),
 				Colour: c, UUID: name,
@@ -112,9 +119,15 @@ func (w *State) AddRandom() *Individual {
 				StepSize:    0.2,
 				Likelihoods: w.scenario.GenerateRandomPersonality(),
 				RegionIds:   make(map[int32]bool),
+				sendUpdates: sendUpdates,
 			}
 			tile.People = append(tile.People, &person)
 			counter++
+			w.peopleAdded++
+			w.peopleCurrent++
+			if person.sendUpdates {
+				w.currentSenders++
+			}
 			w.allPeople = append(w.allPeople, &person)
 			return &person
 		}
@@ -156,6 +169,9 @@ func (w *State) MoveIndividual(person *Individual, theta float64, distance float
 				newTile.People = append(newTile.People, person)
 			} else {
 				w.peopleCurrent--
+				if person.sendUpdates {
+					w.currentSenders--
+				}
 				allPos := -1
 				for ti, p := range w.allPeople {
 					if p.UUID == person.UUID {
@@ -185,7 +201,7 @@ func (w *State) MoveIndividual(person *Individual, theta float64, distance float
 				}
 				w.groups[gPos].Individuals = append(w.groups[gPos].Individuals[:iPos], w.groups[gPos].Individuals[iPos+1:]...)
 				w.allPeople = append(w.allPeople[:allPos], w.allPeople[allPos+1:]...)
-				LeaveAllRegions(w, person, w.time, w.BulkSend)
+				LeaveAllRegions(w, person, w.time, w.BulkSend, w.SendUpdates)
 			}
 		}
 	} else {
@@ -227,4 +243,6 @@ func (s *State) MakeChannes() {
 	s.peopleAddedChan = make(chan int)
 	s.peopleCurrentChan = make(chan int)
 	s.simulationTimeChan = make(chan time.Time)
+	s.currentSendersChan = make(chan int)
+	s.totalSendsChan = make(chan int)
 }

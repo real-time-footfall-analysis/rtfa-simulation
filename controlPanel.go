@@ -26,6 +26,7 @@ type ControlPanel struct {
 	root  *widget.Sheet
 	world *State
 	w     screen.Window
+	r     *RenderState
 }
 
 type panelUpdate struct {
@@ -150,22 +151,27 @@ func (w *Button) OnInputEvent(e interface{}, origin image.Point) node.EventHandl
 	return node.NotHandled
 }
 
-func (p *ControlPanel) start(s screen.Screen, world *State) {
+func (p *ControlPanel) start(r *RenderState) {
 
-	p.world = world
-	vf := widget.NewFlow(widget.AxisVertical)
+	p.world = r.world
+	p.s = r.s
+	p.r = r
+	controls := widget.NewFlow(widget.AxisVertical)
+	tickers := widget.NewFlow(widget.AxisVertical)
 
 	p.root = widget.NewSheet(
 		widget.NewUniform(theme.StaticColor(colornames.White),
-			widget.NewPadder(widget.AxisBoth, unit.Ems(1), vf)))
+			widget.NewPadder(widget.AxisBoth, unit.Ems(1), widget.NewFlow(widget.AxisHorizontal, controls, widget.NewSizer(unit.Ems(1), unit.Value{}, nil), tickers))))
 
-	vf.Insert(p.NewGenrateFlowFieldsButton(), nil)
+	controls.Insert(p.NewGenrateFlowFieldsButton(), nil)
+	controls.Insert(p.NewStartSimulationButton(), nil)
+	controls.Insert(p.NewHighlightActiveButton(), nil)
 
-	vf.Insert(p.NewStartSimulationButton(), nil)
-
-	vf.Insert(p.NewTicker("Total People:", func() string { return fmt.Sprintf("%d", <-p.world.peopleCurrentChan) }), nil)
-	vf.Insert(p.NewTicker("Total People Added:", func() string { return fmt.Sprintf("%d", <-p.world.peopleAddedChan) }), nil)
-	vf.Insert(p.NewTicker("Simulation Time:", func() string { return (<-p.world.simulationTimeChan).String() }), nil)
+	tickers.Insert(p.NewTicker("Total People:", func() string { return fmt.Sprintf("%d", <-p.world.peopleCurrentChan) }), nil)
+	tickers.Insert(p.NewTicker("Total People Added:", func() string { return fmt.Sprintf("%d", <-p.world.peopleAddedChan) }), nil)
+	tickers.Insert(p.NewTicker("Simulation Time:", func() string { return (<-p.world.simulationTimeChan).String() }), nil)
+	tickers.Insert(p.NewTicker("Current Active People:", func() string { return fmt.Sprintf("%d", <-p.world.currentSendersChan) }), nil)
+	tickers.Insert(p.NewTicker("Total updates:", func() string { return fmt.Sprintf("%d", <-p.world.totalSendsChan) }), nil)
 
 	for i := range p.world.scenario.Destinations {
 		dest := &p.world.scenario.Destinations[i]
@@ -179,10 +185,8 @@ func (p *ControlPanel) start(s screen.Screen, world *State) {
 			}
 		})
 
-		vf.Insert(button, nil)
+		controls.Insert(button, nil)
 	}
-
-	p.s = s
 
 	newtheme := theme.Theme{}
 
@@ -240,6 +244,18 @@ func (p *ControlPanel) NewStartSimulationButton() *Button {
 		log.Println("Starting Simulation")
 		p.world.playPauseChan <- true
 		return "Pause Simulation"
+	})
+}
+
+func (p *ControlPanel) NewHighlightActiveButton() *Button {
+	return p.NewButton("Highlight Active AI", icons.ActionFavorite, true, func() string {
+		if p.world.highlightActive {
+			p.world.highlightActive = false
+		} else {
+			p.world.highlightActive = true
+		}
+		p.r.w.Send(UpdateEvent{p.world})
+		return "Highlight Active AI"
 	})
 }
 

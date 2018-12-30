@@ -60,10 +60,9 @@ func (s *State) LoadRegions(path string, lat, lng float64) {
 	}
 	s.Regions = regions
 
-	newList := make([]update, 0)
-	bulkUpdate = &newList
-
 	if s.BulkSend {
+		newList := make([]update, 0)
+		bulkUpdate = &newList
 		updateChannel = make(chan []byte, 50)
 		if s.SendUpdates {
 			startBulkConsumer(updateChannel)
@@ -88,6 +87,9 @@ func latLngToCoords(lat, lng, latOrigin, lngOrigin float64) (float64, float64) {
 }
 
 func UpdateRegions(regions *[]Region, individual *Individual, time time.Time, bulk, send bool) {
+	if !individual.sendUpdates {
+		return
+	}
 	for _, r := range *regions {
 		x, y := individual.Loc.GetLatestXY()
 		dx := x - r.X
@@ -103,6 +105,7 @@ func UpdateRegions(regions *[]Region, individual *Individual, time time.Time, bu
 				if bulk {
 					*bulkUpdate = append(*bulkUpdate, u)
 				} else {
+					totalUpdates++
 					if send {
 						sendUpdate(&u)
 					}
@@ -119,6 +122,7 @@ func UpdateRegions(regions *[]Region, individual *Individual, time time.Time, bu
 				if bulk {
 					*bulkUpdate = append(*bulkUpdate, u)
 				} else {
+					totalUpdates++
 					if send {
 						sendUpdate(&u)
 					}
@@ -129,7 +133,10 @@ func UpdateRegions(regions *[]Region, individual *Individual, time time.Time, bu
 	}
 }
 
-func LeaveAllRegions(state *State, individual *Individual, time time.Time, bulk bool) {
+func LeaveAllRegions(state *State, individual *Individual, time time.Time, bulk, send bool) {
+	if !individual.sendUpdates {
+		return
+	}
 	for rID, b := range individual.RegionIds {
 		if b {
 			r := state.FindRegion(rID)
@@ -137,7 +144,10 @@ func LeaveAllRegions(state *State, individual *Individual, time time.Time, bulk 
 			if bulk {
 				*bulkUpdate = append(*bulkUpdate, u)
 			} else {
-				sendUpdate(&u)
+				totalUpdates++
+				if send {
+					sendUpdate(&u)
+				}
 			}
 		}
 	}
@@ -172,8 +182,16 @@ var bulkUpdate *[]update
 var updateChannel chan []byte
 var totalUpdates int
 
+func GetTotalUpdates() int {
+	return totalUpdates
+}
+
 func SendBulk() {
-	if bulkUpdate == nil || len(*bulkUpdate) < 10 {
+	if bulkUpdate == nil {
+		log.Println("total updates so far:", totalUpdates)
+		return
+	}
+	if len(*bulkUpdate) < 10 {
 		return
 	}
 	totalUpdates += len(*bulkUpdate)
@@ -186,7 +204,6 @@ func SendBulk() {
 		log.Fatal("Cannot marshal bulk update:")
 	}
 	updateChannel <- jsonStr
-	log.Println("total updates so far:", totalUpdates)
 }
 
 func startBulkConsumer(jsonChannel chan []byte) {
