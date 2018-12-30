@@ -68,11 +68,11 @@ func (w *Icon) PaintBase(ctx *node.PaintBaseContext, origin image.Point) error {
 
 type Ticker struct {
 	node.ShellEmbed
-	tick  chan int
+	tick  func() string
 	label *widget.Label
 }
 
-func (p *ControlPanel) NewTicker(text string, tick chan int) *Ticker {
+func (p *ControlPanel) NewTicker(text string, tick func() string) *Ticker {
 	w := &Ticker{
 		tick: tick,
 	}
@@ -91,8 +91,8 @@ func (p *ControlPanel) NewTicker(text string, tick chan int) *Ticker {
 
 	go func() {
 		for {
-			newInt := <-w.tick
-			w.label.Text = fmt.Sprintf("%-30d", newInt)
+			newString := w.tick()
+			w.label.Text = fmt.Sprintf("%-30s", newString)
 			w.label.Mark(node.MarkNeedsPaintBase)
 			p.w.Send(update{})
 		}
@@ -108,16 +108,22 @@ type Button struct {
 	z       iconvg.Rasterizer
 	uniform *widget.Uniform
 	label   *widget.Label
+	pressed bool
 }
 
-func (p *ControlPanel) NewButton(text string, icon []byte, onClick func() string) *Button {
+func (p *ControlPanel) NewButton(text string, icon []byte, toggle bool, onClick func() string) *Button {
 	w := &Button{
 		icon: icon,
 	}
 	fn := func() {
+		w.pressed = !w.pressed
 		w.label.Text = fmt.Sprintf("%-30s", onClick())
 		w.label.Mark(node.MarkNeedsPaintBase)
-		w.uniform.ThemeColor = theme.StaticColor(colornames.Forestgreen)
+		if w.pressed || !toggle {
+			w.uniform.ThemeColor = theme.StaticColor(colornames.Forestgreen)
+		} else {
+			w.uniform.ThemeColor = theme.StaticColor(colornames.Lightcoral)
+		}
 		w.uniform.Mark(node.MarkNeedsPaintBase)
 		p.w.Send(panelUpdate{})
 
@@ -167,8 +173,24 @@ func (p *ControlPanel) start(s screen.Screen, world *State) {
 
 	vf.Insert(p.NewStartSimulationButton(), nil)
 
-	vf.Insert(p.NewTicker("Total People:", p.world.peopleCurrentChan), nil)
-	vf.Insert(p.NewTicker("Total People Added:", p.world.peopleAddedChan), nil)
+	vf.Insert(p.NewTicker("Total People:", func() string { return fmt.Sprintf("%d", <-p.world.peopleCurrentChan) }), nil)
+	vf.Insert(p.NewTicker("Total People Added:", func() string { return fmt.Sprintf("%d", <-p.world.peopleAddedChan) }), nil)
+	vf.Insert(p.NewTicker("Simulation Time:", func() string { return (<-p.world.simulationTimeChan).String() }), nil)
+
+	for i, _ := range p.world.scenario.Destinations {
+		dest := &p.world.scenario.Destinations[i]
+		button := p.NewButton(fmt.Sprintf("Close %s", dest.Name), icons.NavigationClose, true, func() string {
+			if dest.isClosed() {
+				dest.Open()
+				return fmt.Sprintf("Close %s", dest.Name)
+			} else {
+				dest.Close()
+				return fmt.Sprintf("Reopen %s", dest.Name)
+			}
+		})
+
+		vf.Insert(button, nil)
+	}
 
 	p.s = s
 
@@ -192,7 +214,7 @@ func (p *ControlPanel) start(s screen.Screen, world *State) {
 func (p *ControlPanel) NewGenrateFlowFieldsButton() *Button {
 	pressed := false
 
-	return p.NewButton("Generate Flow Fields", icons.MapsMap, func() string {
+	return p.NewButton("Generate Flow Fields", icons.MapsMap, false, func() string {
 		if pressed {
 			return "Generate Flow Fields"
 		}
@@ -217,7 +239,7 @@ func (p *ControlPanel) NewGenrateFlowFieldsButton() *Button {
 
 func (p *ControlPanel) NewStartSimulationButton() *Button {
 	pressed := false
-	return p.NewButton("Run Simulation", icons.MapsMap, func() string {
+	return p.NewButton("Run Simulation", icons.ActionBuild, false, func() string {
 		if pressed {
 			return "Run Simulation"
 		}

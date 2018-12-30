@@ -97,7 +97,8 @@ func (a *Individual) requestedDestination(w *State) DestinationID {
 	var sum float64 = 0
 	probs := make([]ProbabilityPair, 0)
 	for _, likelihood := range a.Likelihoods {
-		if !w.scenario.GetDestination(likelihood.Destination).isClosed() {
+		dest := w.scenario.GetDestination(likelihood.Destination)
+		if !dest.isClosed() {
 			prob := likelihood.ProbabilityAtTick(w.time)
 			sum += prob
 			probs = append(probs, ProbabilityPair{

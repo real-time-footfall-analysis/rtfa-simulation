@@ -21,7 +21,7 @@ func main() {
 	w.LoadScenario("scenario1.json")
 	log.Println("loaded scenario")
 
-	/*fmt.Println("state size:", w.GetWidth(), w.GetHeight())
+	/*fmt.Println("pressed size:", w.GetWidth(), w.GetHeight())
 	for y := 0; y < w.GetHeight(); y++ {
 		for x := 0; x < w.GetWidth(); x++ {
 			if w.GetTile(x, y).Walkable() {
@@ -107,6 +107,7 @@ func simulate(world *State, r *RenderState) {
 		r.SendEvent(UpdateEvent{World: world})
 		world.peopleAddedChan <- world.peopleAdded
 		world.peopleCurrentChan <- world.peopleCurrent
+		world.simulationTimeChan <- world.time
 
 		//fmt.Println("people: ", people)
 		steps++

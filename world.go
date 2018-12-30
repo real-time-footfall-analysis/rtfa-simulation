@@ -40,23 +40,24 @@ func (t *Tile) SetWalkable(b bool) {
 }
 
 type State struct {
-	tiles             [][]Tile
-	width             int
-	height            int
-	background        image.Image
-	Regions           []Region
-	allPeople         []*Individual
-	time              time.Time
-	BulkSend          bool
-	SendUpdates       bool
-	peopletoAdd       int
-	scenario          Scenario
-	peopleAdded       int
-	peopleCurrent     int
-	groups            []*Group
-	startWaiter       chan bool
-	peopleAddedChan   chan int
-	peopleCurrentChan chan int
+	tiles              [][]Tile
+	width              int
+	height             int
+	background         image.Image
+	Regions            []Region
+	allPeople          []*Individual
+	time               time.Time
+	BulkSend           bool
+	SendUpdates        bool
+	peopletoAdd        int
+	scenario           Scenario
+	peopleAdded        int
+	peopleCurrent      int
+	groups             []*Group
+	startWaiter        chan bool
+	peopleAddedChan    chan int
+	peopleCurrentChan  chan int
+	simulationTimeChan chan time.Time
 }
 
 func (w *State) GetWidth() int {
@@ -225,4 +226,5 @@ func (s *State) MakeChannes() {
 	s.startWaiter = make(chan bool)
 	s.peopleAddedChan = make(chan int)
 	s.peopleCurrentChan = make(chan int)
+	s.simulationTimeChan = make(chan time.Time)
 }
