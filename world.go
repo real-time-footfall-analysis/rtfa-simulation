@@ -185,7 +185,7 @@ func (w *State) MoveIndividual(person *Individual, theta float64, distance float
 			}
 		}
 	} else {
-
+		w.movementIntersects(cx, cy, theta, distance)
 		// person is trying to leave! though
 		log.Fatal("cannot leave bounry like this; ", cx, cy, nx, ny, theta/math.Pi, distance)
 
