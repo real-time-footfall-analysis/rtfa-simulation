@@ -62,6 +62,7 @@ type State struct {
 	simulationTimeChan chan time.Time
 	currentSendersChan chan int
 	totalSendsChan     chan int
+	highlightActive    bool
 }
 
 func (w *State) GetWidth() int {

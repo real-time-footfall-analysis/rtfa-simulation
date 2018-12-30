@@ -161,8 +161,8 @@ func (p *ControlPanel) start(s screen.Screen, world *State) {
 			widget.NewPadder(widget.AxisBoth, unit.Ems(1), widget.NewFlow(widget.AxisHorizontal, controls, widget.NewSizer(unit.Ems(1), unit.Value{}, nil), tickers))))
 
 	controls.Insert(p.NewGenrateFlowFieldsButton(), nil)
-
 	controls.Insert(p.NewStartSimulationButton(), nil)
+	controls.Insert(p.NewHighlightActiveButton(), nil)
 
 	tickers.Insert(p.NewTicker("Total People:", func() string { return fmt.Sprintf("%d", <-p.world.peopleCurrentChan) }), nil)
 	tickers.Insert(p.NewTicker("Total People Added:", func() string { return fmt.Sprintf("%d", <-p.world.peopleAddedChan) }), nil)
@@ -240,6 +240,17 @@ func (p *ControlPanel) NewStartSimulationButton() *Button {
 		log.Println("Starting Simulation")
 		p.world.startWaiter <- true
 		return "Run Simulation"
+	})
+}
+
+func (p *ControlPanel) NewHighlightActiveButton() *Button {
+	return p.NewButton("Highlight Active AI", icons.ActionFavorite, true, func() string {
+		if p.world.highlightActive {
+			p.world.highlightActive = false
+		} else {
+			p.world.highlightActive = true
+		}
+		return "Highlight Active AI"
 	})
 }
 

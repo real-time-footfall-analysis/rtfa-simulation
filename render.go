@@ -204,7 +204,15 @@ func (r *RenderState) Step() bool {
 				for _, p := range tile.People {
 					//fmt.Print(p)
 					x, y := p.Loc.GetLatestXY()
-					drawPersonInBuffer(r, x, y, p.Colour)
+					if r.world.highlightActive {
+						if p.sendUpdates {
+							drawPersonInBuffer(r, x, y, colornames.Red, 2)
+						} else {
+							drawPersonInBuffer(r, x, y, colornames.Gray, 1)
+						}
+					} else {
+						drawPersonInBuffer(r, x, y, p.Colour, 1)
+					}
 				}
 			}
 		}
@@ -215,19 +223,18 @@ func (r *RenderState) Step() bool {
 	return true
 }
 
-func drawPersonInBuffer(r *RenderState, x, y float64, c color.Color) {
+func drawPersonInBuffer(r *RenderState, x, y float64, c color.Color, p float64) {
 	ix := int(x * float64(r.backgroundScale))
 	iy := int(y * float64(r.backgroundScale))
 
-	p := 3
-	pr := r.backgroundScale / p
-	if pr == 0 {
+	pr := float64(r.backgroundScale) * p
+	if pr < 1 {
 		pr = 1
 	}
 	for px := -pr; px < pr; px++ {
 		for py := -pr; py < pr; py++ {
 			if px*px+py*py < pr*pr {
-				r.b.RGBA().Set(ix+px, iy+py, c)
+				r.b.RGBA().Set(ix+int(px), iy+int(py), c)
 			}
 		}
 	}
