@@ -153,19 +153,22 @@ func (w *Button) OnInputEvent(e interface{}, origin image.Point) node.EventHandl
 func (p *ControlPanel) start(s screen.Screen, world *State) {
 
 	p.world = world
-	vf := widget.NewFlow(widget.AxisVertical)
+	controls := widget.NewFlow(widget.AxisVertical)
+	tickers := widget.NewFlow(widget.AxisVertical)
 
 	p.root = widget.NewSheet(
 		widget.NewUniform(theme.StaticColor(colornames.White),
-			widget.NewPadder(widget.AxisBoth, unit.Ems(1), vf)))
+			widget.NewPadder(widget.AxisBoth, unit.Ems(1), widget.NewFlow(widget.AxisHorizontal, controls, widget.NewSizer(unit.Ems(1), unit.Value{}, nil), tickers))))
 
-	vf.Insert(p.NewGenrateFlowFieldsButton(), nil)
+	controls.Insert(p.NewGenrateFlowFieldsButton(), nil)
 
-	vf.Insert(p.NewStartSimulationButton(), nil)
+	controls.Insert(p.NewStartSimulationButton(), nil)
 
-	vf.Insert(p.NewTicker("Total People:", func() string { return fmt.Sprintf("%d", <-p.world.peopleCurrentChan) }), nil)
-	vf.Insert(p.NewTicker("Total People Added:", func() string { return fmt.Sprintf("%d", <-p.world.peopleAddedChan) }), nil)
-	vf.Insert(p.NewTicker("Simulation Time:", func() string { return (<-p.world.simulationTimeChan).String() }), nil)
+	tickers.Insert(p.NewTicker("Total People:", func() string { return fmt.Sprintf("%d", <-p.world.peopleCurrentChan) }), nil)
+	tickers.Insert(p.NewTicker("Total People Added:", func() string { return fmt.Sprintf("%d", <-p.world.peopleAddedChan) }), nil)
+	tickers.Insert(p.NewTicker("Simulation Time:", func() string { return (<-p.world.simulationTimeChan).String() }), nil)
+	tickers.Insert(p.NewTicker("Current Active People:", func() string { return fmt.Sprintf("%d", <-p.world.currentSendersChan) }), nil)
+	tickers.Insert(p.NewTicker("Total updates:", func() string { return fmt.Sprintf("%d", <-p.world.totalSendsChan) }), nil)
 
 	for i := range p.world.scenario.Destinations {
 		dest := &p.world.scenario.Destinations[i]
@@ -179,7 +182,7 @@ func (p *ControlPanel) start(s screen.Screen, world *State) {
 			}
 		})
 
-		vf.Insert(button, nil)
+		controls.Insert(button, nil)
 	}
 
 	p.s = s

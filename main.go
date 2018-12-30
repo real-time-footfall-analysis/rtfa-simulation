@@ -15,8 +15,9 @@ import (
 func main() {
 	w := LoadFromImage("hyde_park_quater1.png")
 	w.MakeChannes()
-	w.BulkSend = true
+	w.BulkSend = false
 	w.SendUpdates = false
+	w.maxSenders = 150
 	w.LoadRegions("testRegions.json", 51.506478, -0.172219)
 	w.LoadScenario("scenario1.json")
 	log.Println("loaded scenario")
@@ -84,8 +85,6 @@ func simulate(world *State, r *RenderState) {
 			}
 			groupIndex := rand.Intn(world.scenario.TotalGroups)
 			world.groups[groupIndex].Individuals = append(world.groups[groupIndex].Individuals, indiv)
-			world.peopleAdded++
-			world.peopleCurrent++
 		}
 
 		//fmt.Println(steps, "Tick at", t)
@@ -108,6 +107,8 @@ func simulate(world *State, r *RenderState) {
 		world.peopleAddedChan <- world.peopleAdded
 		world.peopleCurrentChan <- world.peopleCurrent
 		world.simulationTimeChan <- world.time
+		world.currentSendersChan <- world.currentSenders
+		world.totalSendsChan <- GetTotalUpdates()
 
 		//fmt.Println("people: ", people)
 		steps++
