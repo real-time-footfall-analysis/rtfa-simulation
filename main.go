@@ -53,7 +53,7 @@ func main() {
 func simulate(world *State, r *RenderState) {
 
 	//time.Sleep(5 * time.Second)
-	<-world.startWaiter
+	<-world.playPauseChan
 	log.Println("Simulation starting")
 
 	steps := 0
@@ -126,6 +126,12 @@ func simulate(world *State, r *RenderState) {
 			fmt.Println("average tick time: ", avg/1000000000)
 			fmt.Println("sim time: ", world.time)
 			SendBulk()
+		}
+
+		select {
+		case <-world.playPauseChan:
+			<-world.playPauseChan
+		default:
 		}
 
 	}
