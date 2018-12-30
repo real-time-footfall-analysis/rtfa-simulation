@@ -19,6 +19,7 @@ import (
 	"image"
 	"image/draw"
 	"log"
+	"os"
 )
 
 type ControlPanel struct {
@@ -166,6 +167,7 @@ func (p *ControlPanel) start(r *RenderState) {
 	controls.Insert(p.NewGenrateFlowFieldsButton(), nil)
 	controls.Insert(p.NewStartSimulationButton(), nil)
 	controls.Insert(p.NewHighlightActiveButton(), nil)
+	controls.Insert(p.NewExitButton(), nil)
 
 	tickers.Insert(p.NewTicker("Total People:", func() string { return fmt.Sprintf("%d", <-p.world.peopleCurrentChan) }), nil)
 	tickers.Insert(p.NewTicker("Total People Added:", func() string { return fmt.Sprintf("%d", <-p.world.peopleAddedChan) }), nil)
@@ -256,6 +258,18 @@ func (p *ControlPanel) NewHighlightActiveButton() *Button {
 		}
 		p.r.w.Send(UpdateEvent{p.world})
 		return "Highlight Active AI"
+	})
+}
+
+func (p *ControlPanel) NewExitButton() *Button {
+	clicks := 3
+	return p.NewButton(fmt.Sprintf("Exit - click %d time(s)", clicks), icons.ActionExitToApp, false, func() string {
+		clicks--
+		if clicks < 1 {
+			os.Exit(0)
+		}
+
+		return fmt.Sprintf("Exit - click %d time(s)", clicks)
 	})
 }
 
