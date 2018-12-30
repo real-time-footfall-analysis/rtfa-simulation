@@ -232,14 +232,17 @@ func (p *ControlPanel) NewGenrateFlowFieldsButton() *Button {
 
 func (p *ControlPanel) NewStartSimulationButton() *Button {
 	pressed := false
-	return p.NewButton("Run Simulation", icons.ActionBuild, false, func() string {
+	return p.NewButton("Run Simulation", icons.ActionBuild, true, func() string {
 		if pressed {
-			return "Run Simulation"
+			pressed = false
+			log.Println("Pausing Simulation")
+			p.world.playPauseChan <- true
+			return "Play Simulation"
 		}
 		pressed = true
 		log.Println("Starting Simulation")
-		p.world.startWaiter <- true
-		return "Run Simulation"
+		p.world.playPauseChan <- true
+		return "Pause Simulation"
 	})
 }
 
