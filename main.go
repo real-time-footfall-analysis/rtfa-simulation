@@ -12,7 +12,7 @@ import (
 )
 
 func main() {
-	w := LoadFromImage("demo_complex.png")
+	w := LoadFromImage("hyde_park_quater1.png")
 	w.LoadRegions("testRegions.json", 51.506478, -0.172219)
 	fmt.Println("state size:", w.GetWidth(), w.GetHeight())
 	for y := 0; y < w.GetHeight(); y++ {
@@ -44,7 +44,7 @@ func main() {
 }
 
 func simulate(world *State, r *RenderState) {
-	//time.Sleep(5 * time.Second)
+	time.Sleep(5 * time.Second)
 	ticker := time.NewTicker(10 * time.Millisecond)
 	go func() {
 		people := 0
@@ -55,7 +55,7 @@ func simulate(world *State, r *RenderState) {
 		groups := make([]*Group, 2000)
 		for i, _ := range groups {
 			groups[i] = &Group{
-				Individuals:  make([]*Individual, 0),
+				Individuals: make([]*Individual, 0),
 			}
 		}
 		for i := 0; i < 10000; i++ {
