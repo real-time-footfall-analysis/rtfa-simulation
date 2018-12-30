@@ -31,16 +31,6 @@ type ControlPanel struct {
 type panelUpdate struct {
 }
 
-func stretch(n node.Node, alongWeight int) node.Node {
-	return widget.WithLayoutData(n, widget.FlowLayoutData{
-		AlongWeight:  alongWeight,
-		ExpandAlong:  true,
-		ShrinkAlong:  true,
-		ExpandAcross: true,
-		ShrinkAcross: true,
-	})
-}
-
 type Icon struct {
 	node.LeafEmbed
 	icon []byte
@@ -57,7 +47,7 @@ func NewIcon(icon []byte) *Icon {
 
 func (w *Icon) Measure(t *theme.Theme, widthHint, heightHint int) {
 	px := t.Pixels(unit.Ems(2)).Ceil()
-	w.MeasuredSize = image.Point{px, px}
+	w.MeasuredSize = image.Point{X: px, Y: px}
 }
 
 func (w *Icon) PaintBase(ctx *node.PaintBaseContext, origin image.Point) error {
@@ -177,7 +167,7 @@ func (p *ControlPanel) start(s screen.Screen, world *State) {
 	vf.Insert(p.NewTicker("Total People Added:", func() string { return fmt.Sprintf("%d", <-p.world.peopleAddedChan) }), nil)
 	vf.Insert(p.NewTicker("Simulation Time:", func() string { return (<-p.world.simulationTimeChan).String() }), nil)
 
-	for i, _ := range p.world.scenario.Destinations {
+	for i := range p.world.scenario.Destinations {
 		dest := &p.world.scenario.Destinations[i]
 		button := p.NewButton(fmt.Sprintf("Close %s", dest.Name), icons.NavigationClose, true, func() string {
 			if dest.isClosed() {
@@ -250,6 +240,7 @@ func (p *ControlPanel) NewStartSimulationButton() *Button {
 	})
 }
 
+// Slightly modified from widget.RunWindow
 func (p *ControlPanel) RunWindow(opts *widget.RunWindowOptions) error {
 	var (
 		nwo *screen.NewWindowOptions
@@ -266,16 +257,6 @@ func (p *ControlPanel) RunWindow(opts *widget.RunWindowOptions) error {
 	}
 	defer p.w.Release()
 
-	// paintPending batches up multiple NeedsPaint observations so that we
-	// paint only once (which can be relatively expensive) even when there are
-	// multiple input events in the queue, such as from a rapidly moving mouse
-	// or from the user typing many keys.
-	//
-	// TODO: determine somehow if there's an external paint event in the queue,
-	// not just internal paint events?
-	//
-	// TODO: if every package that uses package screen should basically
-	// throttle like this, should it be provided at a lower level?
 	paintPending := false
 
 	gef := gesture.EventFilter{EventDeque: p.w}
@@ -322,8 +303,8 @@ func (p *ControlPanel) RunWindow(opts *widget.RunWindowOptions) error {
 				t = newT
 			}
 
-			size := e.Size()
-			p.root.Measure(t, size.X, size.Y)
+			windowSize := e.Size()
+			p.root.Measure(t, windowSize.X, windowSize.Y)
 			p.root.Wrappee().Rect = e.Bounds()
 			p.root.Layout(t)
 			// TODO: call Mark(node.MarkNeedsPaint)?
