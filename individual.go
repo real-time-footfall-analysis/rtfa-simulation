@@ -48,7 +48,8 @@ func (l *Likelihood) ProbabilityAtTick(time time.Time) float64 {
 
 func (i *Individual) Next(w *State) DestinationID {
 
-	if i.target == nil {
+	if i.target == nil || i.target.isClosed() {
+		i.leaveTime = time.Time{}
 		destID := i.requestedDestination(w)
 		i.target = w.scenario.GetDestination(destID)
 		return destID
@@ -96,12 +97,15 @@ func (a *Individual) requestedDestination(w *State) DestinationID {
 	var sum float64 = 0
 	probs := make([]ProbabilityPair, 0)
 	for _, likelihood := range a.Likelihoods {
-		prob := likelihood.ProbabilityAtTick(w.time)
-		sum += prob
-		probs = append(probs, ProbabilityPair{
-			prob: prob,
-			dest: likelihood.Destination,
-		})
+		dest := w.scenario.GetDestination(likelihood.Destination)
+		if !dest.isClosed() {
+			prob := likelihood.ProbabilityAtTick(w.time)
+			sum += prob
+			probs = append(probs, ProbabilityPair{
+				prob: prob,
+				dest: likelihood.Destination,
+			})
+		}
 	}
 
 	// Normalise them
@@ -138,22 +142,29 @@ func (i *Individual) DirectionForDestination(dest DestinationID, w *State) utils
 		return utils.OptionalFloat64WithEmptyValue()
 	}
 
+	var newOri float64
+
 	// Pick a random "sway" so they dont walk just in ordinal directions - more realistic
 
 	// TODO: Look for people in their ordinal direction and follow them
+	v, ok := tile.Directions[dest]
+	if !ok {
+		newOri = i.dumbDirection(w, dest)
+	} else {
+		Ori, present := v.Value()
 
-	newOri, present := tile.Directions[dest].Value()
+		if !present {
+			newOri = i.dumbDirection(w, dest)
+		} else {
+			newOri = Ori
+		}
+	}
+
 	newSway := (rand.Float64() - 0.5) * math.Pi / 2
 
 	if i.LastMoveDist < 0.05 {
 		newSway *= 2.5
 	}
-
-	if !present {
-		// TODO: what to do here?
-		return utils.OptionalFloat64WithEmptyValue()
-	}
-
 	// Only change direction if we are going sufficiently against the flow field
 	if math.Abs(i.CurrentOri-newOri) >= ORIENTATION_THRESHOLD ||
 		i.LastMoveDist < 0.05 {
@@ -164,4 +175,15 @@ func (i *Individual) DirectionForDestination(dest DestinationID, w *State) utils
 
 	return utils.OptionalFloat64WithValue(i.CurrentOri + i.CurrentSway)
 
+}
+
+func (i *Individual) dumbDirection(w *State, dest DestinationID) float64 {
+	x, y := i.Loc.GetXY()
+	destination := w.scenario.GetDestination(dest)
+	r := rand.Intn(len(destination.Coords))
+	coord := destination.Coords[r]
+	dx := float64(coord.X) - x
+	dy := float64(coord.Y) - y
+	theta := math.Atan2(dy, dx)
+	return theta
 }

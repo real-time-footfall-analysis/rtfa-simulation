@@ -92,7 +92,7 @@ func (s *State) movementIntersects(x, y float64, theta float64, distance float64
 						cx, cy := closestPointOnLine(x, y, nx, ny, ax, ay)
 
 						closestSquared := math.Pow(cx-ax, 2) + math.Pow(cy-ay, 2)
-						backdist := math.Sqrt(TwicePersonRadiusSquared - closestSquared)
+						backdist := math.Sqrt(math.Dim(TwicePersonRadiusSquared, closestSquared))
 
 						distance = math.Dim(distance, backdist)
 

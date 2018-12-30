@@ -119,7 +119,6 @@ func getValidNeighbouringTiles(t *Tile, w *State) []*Tile {
 			(t.blockedEast && delta == pairInts{1, 0}) ||
 			(t.blockedSouth && delta == pairInts{0, -1}) ||
 			(t.blockedWest && delta == pairInts{-1, 0}) {
-			log.Println("skipping tile")
 			continue
 		}
 

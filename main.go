@@ -14,13 +14,14 @@ import (
 
 func main() {
 	w := LoadFromImage("hyde_park_quater1.png")
+	w.MakeChannes()
 	w.BulkSend = true
 	w.SendUpdates = false
 	w.LoadRegions("testRegions.json", 51.506478, -0.172219)
 	w.LoadScenario("scenario1.json")
 	log.Println("loaded scenario")
 
-	/*fmt.Println("state size:", w.GetWidth(), w.GetHeight())
+	/*fmt.Println("pressed size:", w.GetWidth(), w.GetHeight())
 	for y := 0; y < w.GetHeight(); y++ {
 		for x := 0; x < w.GetWidth(); x++ {
 			if w.GetTile(x, y).Walkable() {
@@ -34,7 +35,7 @@ func main() {
 	fmt.Println()*/
 
 	driver.Main(func(s screen.Screen) {
-		r := SetupRender(s, w.GetImage(), &w.Regions)
+		r := SetupRender(s, w.GetImage(), &w.Regions, &w)
 		defer r.Release()
 
 		go simulate(&w, &r)
@@ -50,8 +51,10 @@ func main() {
 }
 
 func simulate(world *State, r *RenderState) {
+
 	//time.Sleep(5 * time.Second)
-	log.Println("simulation starting")
+	<-world.startWaiter
+	log.Println("Simulation starting")
 
 	steps := 0
 
@@ -61,19 +64,6 @@ func simulate(world *State, r *RenderState) {
 			Individuals: make([]*Individual, 0),
 		}
 	}
-
-	log.Println("Flow fields starting")
-	InitFlowFields()
-	for _, dest := range world.scenario.Destinations {
-		log.Println("Flow field for", dest.Name, "starting")
-
-		err := world.GenerateFlowField(dest.ID)
-		log.Println("Flow field for", dest.Name, "done")
-		if err != nil {
-			log.Fatal("cannot make flow field for", dest)
-		}
-	}
-	log.Println("Flow fields done")
 
 	// Set up parallel processing channels
 	channels := make([]chan map[*Individual]utils.OptionalFloat64, 0)
@@ -95,6 +85,7 @@ func simulate(world *State, r *RenderState) {
 			groupIndex := rand.Intn(world.scenario.TotalGroups)
 			world.groups[groupIndex].Individuals = append(world.groups[groupIndex].Individuals, indiv)
 			world.peopleAdded++
+			world.peopleCurrent++
 		}
 
 		//fmt.Println(steps, "Tick at", t)
@@ -113,9 +104,11 @@ func simulate(world *State, r *RenderState) {
 			processMovementsForGroup(world, result)
 		}
 
-		if steps%1 == 0 {
-			r.SendEvent(UpdateEvent{world})
-		}
+		r.SendEvent(UpdateEvent{World: world})
+		world.peopleAddedChan <- world.peopleAdded
+		world.peopleCurrentChan <- world.peopleCurrent
+		world.simulationTimeChan <- world.time
+
 		//fmt.Println("people: ", people)
 		steps++
 		world.TickTime()
