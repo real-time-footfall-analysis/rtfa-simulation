@@ -169,7 +169,9 @@ func (w *State) MoveIndividual(person *Individual, theta float64, distance float
 				newTile.People = append(newTile.People, person)
 			} else {
 				w.peopleCurrent--
-				w.currentSenders--
+				if person.sendUpdates {
+					w.currentSenders--
+				}
 				allPos := -1
 				for ti, p := range w.allPeople {
 					if p.UUID == person.UUID {
