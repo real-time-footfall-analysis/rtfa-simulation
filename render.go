@@ -113,7 +113,7 @@ func SetupRender(s screen.Screen, original image.Image, regions *[]Region, state
 
 	r.windowScale = float64(1)
 
-	r.controlPanel.start(s, state)
+	r.controlPanel.start(&r)
 
 	return r
 }

@@ -26,6 +26,7 @@ type ControlPanel struct {
 	root  *widget.Sheet
 	world *State
 	w     screen.Window
+	r     *RenderState
 }
 
 type panelUpdate struct {
@@ -150,9 +151,11 @@ func (w *Button) OnInputEvent(e interface{}, origin image.Point) node.EventHandl
 	return node.NotHandled
 }
 
-func (p *ControlPanel) start(s screen.Screen, world *State) {
+func (p *ControlPanel) start(r *RenderState) {
 
-	p.world = world
+	p.world = r.world
+	p.s = r.s
+	p.r = r
 	controls := widget.NewFlow(widget.AxisVertical)
 	tickers := widget.NewFlow(widget.AxisVertical)
 
@@ -184,8 +187,6 @@ func (p *ControlPanel) start(s screen.Screen, world *State) {
 
 		controls.Insert(button, nil)
 	}
-
-	p.s = s
 
 	newtheme := theme.Theme{}
 
@@ -253,6 +254,7 @@ func (p *ControlPanel) NewHighlightActiveButton() *Button {
 		} else {
 			p.world.highlightActive = true
 		}
+		p.r.w.Send(UpdateEvent{p.world})
 		return "Highlight Active AI"
 	})
 }
