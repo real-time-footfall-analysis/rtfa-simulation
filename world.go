@@ -40,21 +40,23 @@ func (t *Tile) SetWalkable(b bool) {
 }
 
 type State struct {
-	tiles         [][]Tile
-	width         int
-	height        int
-	background    image.Image
-	Regions       []Region
-	TileWidth     int // TODO: do we need this?
-	allPeople     []*Individual
-	time          time.Time
-	BulkSend      bool
-	SendUpdates   bool
-	peopletoAdd   int
-	scenario      Scenario
-	peopleAdded   int
-	peopleCurrent int
-	groups        []*Group
+	tiles             [][]Tile
+	width             int
+	height            int
+	background        image.Image
+	Regions           []Region
+	allPeople         []*Individual
+	time              time.Time
+	BulkSend          bool
+	SendUpdates       bool
+	peopletoAdd       int
+	scenario          Scenario
+	peopleAdded       int
+	peopleCurrent     int
+	groups            []*Group
+	startWaiter       chan bool
+	peopleAddedChan   chan int
+	peopleCurrentChan chan int
 }
 
 func (w *State) GetWidth() int {
@@ -152,6 +154,7 @@ func (w *State) MoveIndividual(person *Individual, theta float64, distance float
 				newTile := w.GetTile(int(nx), int(ny))
 				newTile.People = append(newTile.People, person)
 			} else {
+				w.peopleCurrent--
 				allPos := -1
 				for ti, p := range w.allPeople {
 					if p.UUID == person.UUID {
@@ -216,4 +219,10 @@ func (s *State) FindRegion(id int32) *Region {
 		}
 	}
 	return nil
+}
+
+func (s *State) MakeChannes() {
+	s.startWaiter = make(chan bool)
+	s.peopleAddedChan = make(chan int)
+	s.peopleCurrentChan = make(chan int)
 }

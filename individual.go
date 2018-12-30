@@ -48,7 +48,8 @@ func (l *Likelihood) ProbabilityAtTick(time time.Time) float64 {
 
 func (i *Individual) Next(w *State) DestinationID {
 
-	if i.target == nil {
+	if i.target == nil || i.target.isClosed() {
+		i.leaveTime = time.Time{}
 		destID := i.requestedDestination(w)
 		i.target = w.scenario.GetDestination(destID)
 		return destID
@@ -96,12 +97,14 @@ func (a *Individual) requestedDestination(w *State) DestinationID {
 	var sum float64 = 0
 	probs := make([]ProbabilityPair, 0)
 	for _, likelihood := range a.Likelihoods {
-		prob := likelihood.ProbabilityAtTick(w.time)
-		sum += prob
-		probs = append(probs, ProbabilityPair{
-			prob: prob,
-			dest: likelihood.Destination,
-		})
+		if !w.scenario.GetDestination(likelihood.Destination).isClosed() {
+			prob := likelihood.ProbabilityAtTick(w.time)
+			sum += prob
+			probs = append(probs, ProbabilityPair{
+				prob: prob,
+				dest: likelihood.Destination,
+			})
+		}
 	}
 
 	// Normalise them

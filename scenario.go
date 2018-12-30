@@ -28,6 +28,7 @@ type Destination struct {
 	Events   []event `json:"events"`
 	MeanTime float64 `json:"meanUseTime"`
 	VarTime  float64 `json:"useTimeVar"`
+	Closed   bool
 }
 
 type Coord struct {
@@ -161,4 +162,20 @@ func (d *Destination) ContainsCenter(x, y int) bool {
 		}
 	}
 	return false
+}
+
+func (d *Destination) Close() bool {
+	closed := d.Closed
+	d.Closed = true
+	return !closed
+}
+
+func (d *Destination) Open() bool {
+	closed := d.Closed
+	d.Closed = false
+	return closed
+}
+
+func (d *Destination) isClosed() bool {
+	return d.Closed
 }
