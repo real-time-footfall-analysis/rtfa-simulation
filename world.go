@@ -54,7 +54,7 @@ type State struct {
 	peopleAdded        int
 	peopleCurrent      int
 	groups             []*Group
-	startWaiter        chan bool
+	playPauseChan      chan bool
 	peopleAddedChan    chan int
 	peopleCurrentChan  chan int
 	simulationTimeChan chan time.Time
@@ -223,7 +223,7 @@ func (s *State) FindRegion(id int32) *Region {
 }
 
 func (s *State) MakeChannes() {
-	s.startWaiter = make(chan bool)
+	s.playPauseChan = make(chan bool)
 	s.peopleAddedChan = make(chan int)
 	s.peopleCurrentChan = make(chan int)
 	s.simulationTimeChan = make(chan time.Time)
