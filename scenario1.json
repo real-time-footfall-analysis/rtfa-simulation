@@ -1,4 +1,5 @@
-{"start": "2018-11-23T07:00:00.000Z", "end":"2018-11-23T21:00:00.000Z",
+{"map":"hyde_park_quater1.png", "regions":"hyde_park_quarter1_Regions.json",
+  "start":"2018-11-23T07:00:00.000Z", "end":"2018-11-23T21:00:00.000Z",
   "entrance":[{"x": 695, "y":279, "r": 0.3}, {"x": 312, "y":65, "r": 0.3}], "totalPeople": 5000, "totalGroups": 5000,
   "exit":{
     "coords":[{"x":401, "y": 320, "r":5}, {"x":661, "y": 157, "r":5}, {"x":71, "y": 198, "r":5}], "regionId": 0,
