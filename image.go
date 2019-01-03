@@ -10,6 +10,7 @@ import (
 	"log"
 	"math"
 	"os"
+	"strings"
 )
 
 func LoadFromImage(path string) State {
@@ -83,15 +84,63 @@ func blockedWest(c color.Color) bool {
 	return sameColour(c, color.RGBA{R: 120, G: 0, B: 120, A: 255})
 }
 
-func (s *State) SaveFlowField(dest DestinationID) error {
-	newImage := image.NewNRGBA(image.Rect(0, 0, s.GetWidth(), s.GetHeight()))
+type noFlowFieldsError struct {
+}
+
+func (e noFlowFieldsError) Error() string {
+	return "No FlowFileds found"
+}
+
+func (s *State) LoadFlowField(dest DestinationID) error {
 	destination := s.scenario.GetDestination(dest)
+	filename := strings.Replace(destination.Name, " ", "-", -1)
+	path := fmt.Sprintf("%s/flowfields/%s.png", s.ScenarioName, filename)
+	file, err := os.Open(path)
+	if err != nil {
+		log.Println("Cannot open, ", path, err)
+		return err
+	}
+	defer func() {
+		err := file.Close()
+		if err != nil {
+			log.Println("Unable to close file properly")
+		}
+	}()
+
+	newImage, err := png.Decode(file)
+	if err != nil {
+		log.Println("error decoding png")
+		return err
+	}
+
+	for y := 0; y < s.GetHeight(); y++ {
+		for x := 0; x < s.GetWidth(); x++ {
+			tile := s.GetTile(x, y)
+			colour := newImage.At(x, y)
+			dir, des := decode(colour)
+			if tile.Directions == nil {
+				tile.Directions = make(map[DestinationID]utils.OptionalFloat64)
+			}
+			tile.Directions[dest] = dir
+			if tile.Dists == nil {
+				tile.Dists = make(map[DestinationID]float64)
+			}
+			tile.Dists[dest] = des
+		}
+	}
+	return nil
+
+}
+
+func (s *State) SaveFlowField(dest DestinationID) error {
 	err := os.MkdirAll(fmt.Sprintf("%s/flowfields/", s.ScenarioName), 0777)
 	if err != nil {
 		log.Println("Cannot open or make directory, ", err)
 		return err
 	}
-	file, err := os.OpenFile(fmt.Sprintf("%s/flowfields/%s.png", s.ScenarioName, destination.Name), os.O_CREATE|os.O_RDWR, 0666)
+	destination := s.scenario.GetDestination(dest)
+	filename := strings.Replace(destination.Name, " ", "-", -1)
+	file, err := os.OpenFile(fmt.Sprintf("%s/flowfields/%s.png", s.ScenarioName, filename), os.O_CREATE|os.O_RDWR, 0666)
 	if err != nil {
 		log.Println("Cannot open or make file, ", err)
 		return err
@@ -102,7 +151,8 @@ func (s *State) SaveFlowField(dest DestinationID) error {
 			log.Println("Unable to close file properly")
 		}
 	}()
-
+	newImage := image.NewNRGBA(image.Rect(0, 0, s.GetWidth(), s.GetHeight()))
+	exists := false
 	for y := 0; y < s.GetHeight(); y++ {
 		for x := 0; x < s.GetWidth(); x++ {
 			tile := s.GetTile(x, y)
@@ -111,8 +161,15 @@ func (s *State) SaveFlowField(dest DestinationID) error {
 			if ok && ok2 {
 				colour := encode(optionalDir, distance)
 				newImage.Set(x, y, colour)
+				if !exists && tile.Directions != nil && tile.Dists != nil {
+					exists = true
+				}
 			}
 		}
+	}
+
+	if !exists {
+		return noFlowFieldsError{}
 	}
 
 	maxDirDiff := 0.0
