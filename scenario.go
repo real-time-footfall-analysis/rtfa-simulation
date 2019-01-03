@@ -5,6 +5,7 @@ import (
 	"log"
 	"math/rand"
 	"os"
+	"strings"
 	"time"
 )
 
@@ -49,6 +50,9 @@ type event struct {
 }
 
 func LoadScenario(path string) State {
+	if !strings.HasSuffix(path, ".json") {
+		log.Fatal("Scenario must be a .json file")
+	}
 	configFile, err := os.Open(path)
 	if err != nil {
 		log.Fatal("opening region file", err.Error())
@@ -62,6 +66,7 @@ func LoadScenario(path string) State {
 	}
 	log.Println("map: ", scenario.MapImage)
 	s := LoadFromImage(scenario.MapImage)
+	s.ScenarioName = strings.TrimSuffix(path, ".json")
 	s.LoadRegions(scenario.RegionsFile, scenario.Lat, scenario.Lng)
 
 	scenario.destMap = make(map[int]*Destination)

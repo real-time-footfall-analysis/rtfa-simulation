@@ -40,6 +40,7 @@ func (t *Tile) SetWalkable(b bool) {
 }
 
 type State struct {
+	ScenarioName       string
 	tiles              [][]Tile
 	width              int
 	height             int
