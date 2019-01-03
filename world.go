@@ -1,9 +1,9 @@
 package main
 
 import (
-	"fmt"
 	"github.com/real-time-footfall-analysis/rtfa-simulation/geometry"
 	"github.com/real-time-footfall-analysis/rtfa-simulation/utils"
+	"github.com/satori/go.uuid"
 	"image"
 	"image/color"
 	"log"
@@ -109,7 +109,8 @@ func (w *State) AddRandom() *Individual {
 			r, g, b := color.YCbCrToRGB(uint8(100), uint8(rand.Intn(256)), uint8(rand.Intn(256)))
 			c := color.RGBA{r, g, b, 255}
 
-			name := fmt.Sprintf("SimBot-%029d", counter)
+			name := uuid.Must(uuid.NewV4()).String()
+
 			//randSetIndex := rand.Intn(4)
 			sendUpdates := w.maxSenders > w.currentSenders
 			sendUpdates = sendUpdates && rand.Intn(w.scenario.TotalPeople-w.peopleAdded) <= (w.maxSenders-w.currentSenders)
