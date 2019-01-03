@@ -177,7 +177,7 @@ func (p *ControlPanel) start(r *RenderState) {
 	tickers.Insert(p.NewTicker("Current Active People:", func() string { return fmt.Sprintf("%d", <-p.world.currentSendersChan) }), nil)
 	tickers.Insert(p.NewTicker("Total updates:", func() string { return fmt.Sprintf("%d", <-p.world.totalSendsChan) }), nil)
 
-	for i := range p.world.scenario.Destinations {
+	/*for i := range p.world.scenario.Destinations {
 		dest := &p.world.scenario.Destinations[i]
 		button := p.NewButton(fmt.Sprintf("Close %s", dest.Name), icons.NavigationClose, true, func() string {
 			if dest.isClosed() {
@@ -190,7 +190,7 @@ func (p *ControlPanel) start(r *RenderState) {
 		})
 
 		controls.Insert(button, nil)
-	}
+	}*/
 
 	newtheme := theme.Theme{}
 
