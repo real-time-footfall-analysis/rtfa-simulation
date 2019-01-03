@@ -5,10 +5,15 @@ import (
 	"log"
 	"math/rand"
 	"os"
+	"strings"
 	"time"
 )
 
 type Scenario struct {
+	MapImage     string        `json:"map"`
+	RegionsFile  string        `json:"regions"`
+	Lat          float64       `json:"lat,omitempty"`
+	Lng          float64       `json:"lng,omitempty"`
 	Start        time.Time     `json:"start,string"`
 	End          time.Time     `json:"end,string"`
 	Entrances    []Coord       `json:"entrance"`
@@ -44,7 +49,10 @@ type event struct {
 	Popularity float64   `json:"popularity"`
 }
 
-func (s *State) LoadScenario(path string) {
+func LoadScenario(path string) State {
+	if !strings.HasSuffix(path, ".json") {
+		log.Fatal("Scenario must be a .json file")
+	}
 	configFile, err := os.Open(path)
 	if err != nil {
 		log.Fatal("opening region file", err.Error())
@@ -56,6 +64,10 @@ func (s *State) LoadScenario(path string) {
 	if err = jsonParser.Decode(&scenario); err != nil {
 		log.Fatal("parsing config file", err.Error())
 	}
+	log.Println("map: ", scenario.MapImage)
+	s := LoadFromImage(scenario.MapImage)
+	s.ScenarioName = strings.TrimSuffix(path, ".json")
+	s.LoadRegions(scenario.RegionsFile, scenario.Lat, scenario.Lng)
 
 	scenario.destMap = make(map[int]*Destination)
 	idCount := 1
@@ -86,6 +98,7 @@ func (s *State) LoadScenario(path string) {
 
 	s.scenario = scenario
 	s.time = scenario.Start
+	return s
 }
 
 func (s *Scenario) GenerateRandomPersonality() []Likelihood {

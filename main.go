@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"log"
 	"math/rand"
+	"os"
 	"time"
 
 	"github.com/real-time-footfall-analysis/rtfa-simulation/geometry"
@@ -13,13 +14,15 @@ import (
 )
 
 func main() {
-	w := LoadFromImage("hyde_park_quater1.png")
+	args := os.Args
+	if len(args) < 2 {
+		log.Fatalln("Scenario file required")
+	}
+	w := LoadScenario(args[1])
 	w.MakeChannes()
 	w.BulkSend = false
 	w.SendUpdates = false
 	w.maxSenders = 150
-	w.LoadRegions("testRegions.json", 51.506478, -0.172219)
-	w.LoadScenario("scenario1.json")
 	log.Println("loaded scenario")
 
 	/*fmt.Println("pressed size:", w.GetWidth(), w.GetHeight())

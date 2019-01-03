@@ -168,6 +168,8 @@ func (p *ControlPanel) start(r *RenderState) {
 	controls.Insert(p.NewStartSimulationButton(), nil)
 	controls.Insert(p.NewHighlightActiveButton(), nil)
 	controls.Insert(p.NewExitButton(), nil)
+	controls.Insert(p.NewSaveFlowFieldsButton(), nil)
+	controls.Insert(p.NewLoadFlowFieldsButton(), nil)
 
 	tickers.Insert(p.NewTicker("Total People:", func() string { return fmt.Sprintf("%d", <-p.world.peopleCurrentChan) }), nil)
 	tickers.Insert(p.NewTicker("Total People Added:", func() string { return fmt.Sprintf("%d", <-p.world.peopleAddedChan) }), nil)
@@ -212,7 +214,7 @@ func (p *ControlPanel) NewGenrateFlowFieldsButton() *Button {
 
 	return p.NewButton("Generate Flow Fields", icons.MapsMap, false, func() string {
 		if pressed {
-			return "Generate Flow Fields"
+			return "Flow Fields Generated"
 		}
 		pressed = true
 		log.Println("Generate Flow Fields")
@@ -228,7 +230,51 @@ func (p *ControlPanel) NewGenrateFlowFieldsButton() *Button {
 			}
 		}
 		log.Println("Flow fields done")
-		return "Generate Flow Fields"
+		return "Flow Fields Generated"
+
+	})
+}
+
+func (p *ControlPanel) NewLoadFlowFieldsButton() *Button {
+	pressed := false
+
+	return p.NewButton("Load Flow Fields From File", icons.FileFileDownload, false, func() string {
+		if pressed {
+			return "Flow Fields Loaded"
+		}
+		pressed = true
+		log.Println("Load Flow Fields")
+
+		for _, dest := range p.world.scenario.Destinations {
+			log.Println("Flow field for", dest.Name, "saving")
+
+			err := p.world.LoadFlowField(dest.ID)
+			if err != nil {
+				log.Println("error loading flow field", err)
+			}
+		}
+		log.Println("Loading Flow Fields done")
+		return "Flow Fields Loaded"
+
+	})
+}
+
+func (p *ControlPanel) NewSaveFlowFieldsButton() *Button {
+
+	return p.NewButton("Save Flow Fields", icons.ContentSave, false, func() string {
+		log.Println("Save Flow Fields")
+
+		for _, dest := range p.world.scenario.Destinations {
+			log.Println("Flow field for", dest.Name, "saving")
+
+			err := p.world.SaveFlowField(dest.ID)
+			if err != nil {
+				log.Println("error saving flow field", err)
+				return "Retry Save Flow Fields"
+			}
+		}
+		log.Println("Saving Flow Fields done")
+		return "Flow Fields Saved"
 
 	})
 }
