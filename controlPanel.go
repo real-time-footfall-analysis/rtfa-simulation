@@ -170,6 +170,7 @@ func (p *ControlPanel) start(r *RenderState) {
 	controls.Insert(p.NewExitButton(), nil)
 	controls.Insert(p.NewSaveFlowFieldsButton(), nil)
 	controls.Insert(p.NewLoadFlowFieldsButton(), nil)
+	controls.Insert(p.NewCloseAllButton(), nil)
 
 	tickers.Insert(p.NewTicker("Total People:", func() string { return fmt.Sprintf("%d", <-p.world.peopleCurrentChan) }), nil)
 	tickers.Insert(p.NewTicker("Total People Added:", func() string { return fmt.Sprintf("%d", <-p.world.peopleAddedChan) }), nil)
@@ -318,6 +319,31 @@ func (p *ControlPanel) NewExitButton() *Button {
 
 		return fmt.Sprintf("Exit - click %d time(s)", clicks)
 	})
+}
+
+func (p *ControlPanel) NewCloseAllButton() *Button {
+	open := true
+	button := p.NewButton("Close all", icons.NavigationClose, true, func() string {
+
+		for i := 0; i < len(p.world.scenario.Destinations); i++ {
+			dest := &p.world.scenario.Destinations[i]
+			if dest.ID == p.world.scenario.Exit.ID {
+				continue
+			}
+			if open {
+				dest.Close()
+			} else {
+				dest.Open()
+			}
+		}
+		if open {
+			return "Close all"
+		} else {
+			return "Open all"
+		}
+
+	})
+	return button
 }
 
 func (p *ControlPanel) NewNetworkTickers() node.Node {
