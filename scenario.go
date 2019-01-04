@@ -66,6 +66,8 @@ func LoadScenario(path string) State {
 	}
 	log.Println("map: ", scenario.MapImage)
 	s := LoadFromImage(scenario.MapImage)
+	s.scenario = &scenario
+	s.time = scenario.Start
 	s.ScenarioName = strings.TrimSuffix(path, ".json")
 	s.LoadRegions(scenario.RegionsFile, scenario.Lat, scenario.Lng)
 
@@ -96,8 +98,6 @@ func LoadScenario(path string) State {
 	log.Println(scenario.Destinations[0].Events[0].Start)
 	log.Println(scenario.Destinations[0].Events[0].End)
 
-	s.scenario = scenario
-	s.time = scenario.Start
 	return s
 }
 

@@ -32,6 +32,17 @@ type Region struct {
 	sqRad   float64
 }
 
+type UpdateChan struct {
+	updates chan update
+	exited  chan bool
+}
+
+type NetworkStats struct {
+	totalUpdates   int
+	runningUpdates chan bool
+	queuedUpdates  chan int
+}
+
 func (s *State) LoadRegions(path string, lat, lng float64) {
 	configFile, err := os.Open(path)
 	if err != nil {
@@ -71,6 +82,8 @@ func (s *State) LoadRegions(path string, lat, lng float64) {
 		}
 	}
 
+	networkStats.runningUpdates = make(chan bool, 10)
+	networkStats.queuedUpdates = make(chan int, 10)
 }
 
 func latLngToCoords(lat, lng, latOrigin, lngOrigin float64) (float64, float64) {
@@ -86,12 +99,12 @@ func latLngToCoords(lat, lng, latOrigin, lngOrigin float64) (float64, float64) {
 	return x, y
 }
 
-func UpdateRegions(regions *[]Region, individual *Individual, time time.Time, bulk, send bool) {
-	if !individual.sendUpdates {
+func UpdateRegions(regions *[]Region, individual *Individual, time time.Time, bulk bool) {
+	if !individual.UpdateSender {
 		return
 	}
+	x, y := individual.Loc.GetLatestXY()
 	for _, r := range *regions {
-		x, y := individual.Loc.GetLatestXY()
 		dx := x - r.X
 		dy := y - r.Y
 		distanceSquared := math.Pow(dx, 2) + math.Pow(dy, 2)
@@ -102,13 +115,12 @@ func UpdateRegions(regions *[]Region, individual *Individual, time time.Time, bu
 				individual.RegionIds[r.ID] = true
 				// we must send update to backend
 				u := update{EventID: r.EventID, RegionID: r.ID, UUID: individual.UUID, Entering: true, OccurredAt: time.Unix()}
+				networkStats.totalUpdates++
+				networkStats.queuedUpdates <- 1
 				if bulk {
 					*bulkUpdate = append(*bulkUpdate, u)
 				} else {
-					totalUpdates++
-					if send {
-						sendUpdate(&u)
-					}
+					individual.UpdateChan.updates <- u
 				}
 
 			}
@@ -119,13 +131,12 @@ func UpdateRegions(regions *[]Region, individual *Individual, time time.Time, bu
 				individual.RegionIds[r.ID] = false
 				// we must send update to backend to say this individual is no longer in the region.
 				u := update{EventID: r.EventID, RegionID: r.ID, UUID: individual.UUID, Entering: false, OccurredAt: time.Unix()}
+				networkStats.totalUpdates++
+				networkStats.queuedUpdates <- 1
 				if bulk {
 					*bulkUpdate = append(*bulkUpdate, u)
 				} else {
-					totalUpdates++
-					if send {
-						sendUpdate(&u)
-					}
+					individual.UpdateChan.updates <- u
 				}
 			}
 		}
@@ -133,24 +144,49 @@ func UpdateRegions(regions *[]Region, individual *Individual, time time.Time, bu
 	}
 }
 
-func LeaveAllRegions(state *State, individual *Individual, time time.Time, bulk, send bool) {
-	if !individual.sendUpdates {
+func LeaveAllRegions(state *State, individual *Individual, time time.Time, bulk bool) {
+	if !individual.UpdateSender {
 		return
 	}
 	for rID, b := range individual.RegionIds {
 		if b {
 			r := state.FindRegion(rID)
 			u := update{EventID: r.EventID, RegionID: r.ID, UUID: individual.UUID, Entering: false, OccurredAt: time.Unix()}
+			networkStats.totalUpdates++
+			networkStats.queuedUpdates <- 1
 			if bulk {
 				*bulkUpdate = append(*bulkUpdate, u)
 			} else {
-				totalUpdates++
-				if send {
-					sendUpdate(&u)
-				}
+				individual.UpdateChan.updates <- u
 			}
 		}
 	}
+	individual.UpdateChan.exited <- true
+}
+
+func PersonalUpdateDemon(sender *UpdateChan, send bool) {
+	for {
+		select {
+		case u := <-sender.updates:
+			handleUpdate(send, &u)
+		case <-sender.exited:
+			for len(sender.updates) > 0 {
+				u := <-sender.updates
+				handleUpdate(send, &u)
+			}
+			return
+		}
+	}
+}
+func handleUpdate(send bool, u *update) {
+	networkStats.queuedUpdates <- -1
+	networkStats.runningUpdates <- true
+	if send {
+		sendUpdate(u)
+	} else {
+		time.Sleep(1000 * time.Millisecond)
+	}
+	networkStats.runningUpdates <- false
 }
 
 const url = "http://api.jackchorley.club/update"
@@ -169,6 +205,9 @@ func sendUpdate(u *update) {
 	if err != nil {
 		log.Print("Cannot connect to backend")
 	} else {
+		if resp.StatusCode != http.StatusOK {
+			log.Println("Error sending update: ", resp.Status)
+		}
 		err := resp.Body.Close()
 		if err != nil {
 			log.Println("cannot close http response, don't care")
@@ -180,21 +219,21 @@ const bulkUrl = "http://api.jackchorley.club/bulkUpdate"
 
 var bulkUpdate *[]update
 var updateChannel chan []byte
-var totalUpdates int
+var networkStats NetworkStats
 
 func GetTotalUpdates() int {
-	return totalUpdates
+	return networkStats.totalUpdates
 }
 
 func SendBulk() {
 	if bulkUpdate == nil {
-		log.Println("total updates so far:", totalUpdates)
+		log.Println("total updates so far:", networkStats.totalUpdates)
 		return
 	}
 	if len(*bulkUpdate) < 10 {
 		return
 	}
-	totalUpdates += len(*bulkUpdate)
+	networkStats.queuedUpdates <- -len(*bulkUpdate)
 	updateList := bulkUpdate
 	newList := make([]update, 0)
 	bulkUpdate = &newList
@@ -210,6 +249,7 @@ func startBulkConsumer(jsonChannel chan []byte) {
 	go func() {
 		for {
 			jsonStr := <-jsonChannel
+			networkStats.runningUpdates <- true
 			log.Println(len(jsonChannel), " updates buffered")
 			buffer := bytes.NewBuffer(jsonStr)
 			req, err := http.NewRequest("POST", bulkUrl, buffer)
@@ -220,12 +260,15 @@ func startBulkConsumer(jsonChannel chan []byte) {
 			if err != nil {
 				log.Print("Cannot connect to backend")
 			} else {
-				log.Println(resp.Status)
+				if resp.StatusCode != http.StatusOK {
+					log.Println("Error sending update: ", resp.Status)
+				}
 				err := resp.Body.Close()
 				if err != nil {
 					log.Println("cannot close http response, don't care")
 				}
 			}
+			networkStats.runningUpdates <- false
 		}
 	}()
 }

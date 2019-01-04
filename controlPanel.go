@@ -175,9 +175,10 @@ func (p *ControlPanel) start(r *RenderState) {
 	tickers.Insert(p.NewTicker("Total People Added:", func() string { return fmt.Sprintf("%d", <-p.world.peopleAddedChan) }), nil)
 	tickers.Insert(p.NewTicker("Simulation Time:", func() string { return (<-p.world.simulationTimeChan).String() }), nil)
 	tickers.Insert(p.NewTicker("Current Active People:", func() string { return fmt.Sprintf("%d", <-p.world.currentSendersChan) }), nil)
-	tickers.Insert(p.NewTicker("Total updates:", func() string { return fmt.Sprintf("%d", <-p.world.totalSendsChan) }), nil)
+	tickers.Insert(p.NewNetworkTickers(), nil)
+	//tickers.Insert(p.NewTicker("Total updates:", func() string { return fmt.Sprintf("%d", <-p.world.totalSendsChan) }), nil)
 
-	/*for i := range p.world.scenario.Destinations {
+	for i := range p.world.scenario.Destinations {
 		dest := &p.world.scenario.Destinations[i]
 		button := p.NewButton(fmt.Sprintf("Close %s", dest.Name), icons.NavigationClose, true, func() string {
 			if dest.isClosed() {
@@ -190,7 +191,7 @@ func (p *ControlPanel) start(r *RenderState) {
 		})
 
 		controls.Insert(button, nil)
-	}*/
+	}
 
 	newtheme := theme.Theme{}
 
@@ -317,6 +318,31 @@ func (p *ControlPanel) NewExitButton() *Button {
 
 		return fmt.Sprintf("Exit - click %d time(s)", clicks)
 	})
+}
+
+func (p *ControlPanel) NewNetworkTickers() node.Node {
+	vf := widget.NewFlow(widget.AxisVertical)
+	vf.Insert(p.NewTicker("Total updates:", func() string { return fmt.Sprintf("%d", <-p.world.totalSendsChan) }), nil)
+	queued := 0
+	queueTicker := p.NewTicker("Queued Updates:", func() string {
+		i := <-networkStats.queuedUpdates
+		queued += i
+		return fmt.Sprintf("%d", queued)
+	})
+	vf.Insert(queueTicker, nil)
+
+	running := 0
+	runningTicker := p.NewTicker("Running Updates:", func() string {
+		i := <-networkStats.runningUpdates
+		if i {
+			running++
+		} else {
+			running--
+		}
+		return fmt.Sprintf("%d", running)
+	})
+	vf.Insert(runningTicker, nil)
+	return vf
 }
 
 // Slightly modified from widget.RunWindow

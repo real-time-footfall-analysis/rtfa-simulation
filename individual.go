@@ -21,7 +21,7 @@ type Individual struct {
 	Tick         int            // The current tick, from a base of 0, to measure time
 	Likelihoods  []Likelihood   // The array of likelihoods for their preferences
 	StepSize     float64        // The average size step that the person will walk at (picked from a normal distribution)
-	sendUpdates  bool           // set if this AI is to send updates
+	UpdateSender bool           // set if this AI is to send updates
 	RegionIds    map[int32]bool // map (set) containing keys of all regions the actor is in
 	UUID         string         // UUID of this actor for sending updates
 	Colour       color.Color    // colour to render this individual
@@ -31,6 +31,7 @@ type Individual struct {
 	CurrentSway  float64      // Current sway
 	target       *Destination // current target Destination
 	leaveTime    time.Time    // time to leave current place
+	UpdateChan   *UpdateChan
 }
 
 const (

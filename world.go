@@ -53,7 +53,7 @@ type State struct {
 	currentSenders     int
 	SendUpdates        bool
 	peopletoAdd        int
-	scenario           Scenario
+	scenario           *Scenario
 	peopleAdded        int
 	peopleCurrent      int
 	groups             []*Group
@@ -112,22 +112,28 @@ func (w *State) AddRandom() *Individual {
 			name := uuid.Must(uuid.NewV4()).String()
 
 			//randSetIndex := rand.Intn(4)
-			sendUpdates := w.maxSenders > w.currentSenders
-			sendUpdates = sendUpdates && rand.Intn(w.scenario.TotalPeople-w.peopleAdded) <= (w.maxSenders-w.currentSenders)
+			updateSender := w.maxSenders > w.currentSenders
+			updateSender = updateSender && rand.Intn(w.scenario.TotalPeople-w.peopleAdded) <= (w.maxSenders-w.currentSenders)
+
 			person := Individual{
 				Loc:    geometry.NewPoint(float64(x)+xf, float64(y)+yf),
 				Colour: c, UUID: name,
-				Tick:        0,
-				StepSize:    0.2,
-				Likelihoods: w.scenario.GenerateRandomPersonality(),
-				RegionIds:   make(map[int32]bool),
-				sendUpdates: sendUpdates,
+				Tick:         0,
+				StepSize:     0.2,
+				Likelihoods:  w.scenario.GenerateRandomPersonality(),
+				RegionIds:    make(map[int32]bool),
+				UpdateSender: updateSender,
+			}
+			if updateSender {
+				updateChan := UpdateChan{make(chan update, 50), make(chan bool)}
+				person.UpdateChan = &updateChan
+				go PersonalUpdateDemon(&updateChan, w.SendUpdates)
 			}
 			tile.People = append(tile.People, &person)
 			counter++
 			w.peopleAdded++
 			w.peopleCurrent++
-			if person.sendUpdates {
+			if person.UpdateSender {
 				w.currentSenders++
 			}
 			w.allPeople = append(w.allPeople, &person)
@@ -171,7 +177,7 @@ func (w *State) MoveIndividual(person *Individual, theta float64, distance float
 				newTile.People = append(newTile.People, person)
 			} else {
 				w.peopleCurrent--
-				if person.sendUpdates {
+				if person.UpdateSender {
 					w.currentSenders--
 				}
 				allPos := -1
@@ -203,7 +209,7 @@ func (w *State) MoveIndividual(person *Individual, theta float64, distance float
 				}
 				w.groups[gPos].Individuals = append(w.groups[gPos].Individuals[:iPos], w.groups[gPos].Individuals[iPos+1:]...)
 				w.allPeople = append(w.allPeople[:allPos], w.allPeople[allPos+1:]...)
-				LeaveAllRegions(w, person, w.time, w.BulkSend, w.SendUpdates)
+				LeaveAllRegions(w, person, w.time, w.BulkSend)
 			}
 		}
 	} else {
