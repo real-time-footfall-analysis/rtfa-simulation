@@ -194,12 +194,14 @@ func (p *ControlPanel) start(r *RenderState) {
 	}
 
 	newtheme := theme.Theme{}
-
+	p.root.Measure(&newtheme, -1, -1)
 	go func() {
 		//widget.RunWindow(p.s, p.root, nil)
 		err := p.RunWindow(&widget.RunWindowOptions{
 			NewWindowOptions: screen.NewWindowOptions{
-				Title: "Simulation control",
+				Title:  "Simulation control",
+				Width:  p.root.MeasuredSize.X,
+				Height: p.root.MeasuredSize.Y,
 			},
 			Theme: newtheme})
 
