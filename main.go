@@ -154,6 +154,7 @@ func processMovementsForGroup(world *State, movements map[*Individual]utils.Opti
 
 		world.MoveIndividual(individual, theta, individual.StepSize)
 
-		UpdateRegions(&world.Regions, individual, world.time, world.BulkSend, world.SendUpdates)
+		UpdateRegions(&world.Regions, individual, world.time, world.BulkSend)
+
 	}
 }
