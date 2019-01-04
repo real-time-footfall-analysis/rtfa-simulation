@@ -205,7 +205,7 @@ func (r *RenderState) Step() bool {
 					//fmt.Print(p)
 					x, y := p.Loc.GetLatestXY()
 					if r.world.highlightActive {
-						if p.sendUpdates {
+						if p.UpdateSender {
 							drawPersonInBuffer(r, x, y, colornames.Red, 2)
 						} else {
 							drawPersonInBuffer(r, x, y, colornames.Gray, 1)
