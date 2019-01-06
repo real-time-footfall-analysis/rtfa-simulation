@@ -82,7 +82,7 @@
     ]
     },
     { "regionId": 117, "meanUseTime":120, "useTimeVar":100,
-      "name": "Waveswinger", "events": [
+      "name": "Toilets", "events": [
       {"name": "General Use", "start": "2018-11-23T07:00:00.000Z", "end": "2018-11-23T18:30:00.000Z", "popularity": 0.2},
       {"name": "Lunch", "start": "2018-11-23T12:00:00.000Z", "end": "2018-11-23T13:00:00.000Z", "popularity": 0.5},
       {"name": "Dinner", "start": "2018-11-23T18:00:00.000Z", "end": "2018-11-23T19:30:00.000Z", "popularity": 0.5}

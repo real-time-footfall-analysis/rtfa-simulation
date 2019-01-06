@@ -8,7 +8,7 @@
   {"regionID":114,"name":"Street Food","X": 180, "Y": 94, "type":"gps","lat":51.5102662468866,"lng":-0.165049311972439,"radius":25,"eventID":69,"isQueue":false},
   {"regionID":115,"name":"Double Decker Carousel","X": 158, "Y": 124, "type":"gps","lat":51.509227698007,"lng":-0.166293856955349,"radius":4,"eventID":69,"isQueue":false},
   {"regionID":116,"name":"North Star Flyer","X": 157, "Y": 146, "type":"gps","lat":51.5084028099863,"lng":-0.166315314627468,"radius":5,"eventID":69,"isQueue":false},
-  {"regionID":117,"name":"Waveswinger","X": 266, "Y": 137, "type":"gps","lat":51.5087823859155,"lng":-0.160203895292511,"radius":8,"eventID":69,"isQueue":false},
+  {"regionID":117,"name":"Toilets","X": 266, "Y": 137, "type":"gps","lat":51.5087823859155,"lng":-0.160203895292511,"radius":8,"eventID":69,"isQueue":false},
   {"regionID":118,"name":"Blizzard Rollercoaster","X": 212, "Y": 94, "type":"gps","lat":51.5102812671351,"lng":-0.163207969389191,"radius":4,"eventID":69,"isQueue":false},
   {"regionID":119,"name":"Bavarian Hall","X": 202, "Y": 198, "type":"beacon","lat":51.5065849949252,"lng":-0.163741582565763,"radius":9,"eventID":69,"isQueue":false},
   {"regionID":120,"name":"Air Rollercoaster","X": 235, "Y": 174, "type":"gps","lat":51.5074428873422,"lng":-0.161960595779874,"radius":4,"eventID":69,"isQueue":false},
