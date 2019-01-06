@@ -197,13 +197,16 @@ func sendUpdate(u *update) {
 		log.Fatal("Cannot marshal update: ", *u)
 	}
 	req, err := http.NewRequest("POST", url, bytes.NewBuffer(jsonStr))
+	if err != nil {
+		log.Print("Cannot endcode update to json", err)
+	}
 	//req.Header.Set("X-Custom-Header", "myvalue")
 	req.Header.Set("Content-Type", "application/json")
 
 	client := &http.Client{}
 	resp, err := client.Do(req)
 	if err != nil {
-		log.Print("Cannot connect to backend")
+		log.Print("Cannot connect to backend", err)
 	} else {
 		if resp.StatusCode != http.StatusOK {
 			log.Println("Error sending update: ", resp.Status)

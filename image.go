@@ -34,7 +34,7 @@ func LoadFromImage(path string) State {
 		for y := 0; y < world.height; y++ {
 			c := i.At(x, y)
 			if !(sameColour(color.White, c) || sameColour(color.Black, c)) {
-				log.Println("colour", c)
+				log.Println("at:", x, y, "colour", c)
 			}
 			walk := walkable(c)
 			world.tiles[x][y].walkable = walk
