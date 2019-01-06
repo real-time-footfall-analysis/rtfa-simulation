@@ -254,3 +254,12 @@ func (s *State) MakeChannes() {
 	s.currentSendersChan = make(chan int)
 	s.totalSendsChan = make(chan int)
 }
+
+func (s *State) CalcDensity() {
+	for i, dest := range s.scenario.Destinations {
+		pop := dest.population
+		popf := math.Max(10, float64(pop))
+		popf /= math.Max(1, dest.volume)
+		s.scenario.Destinations[i].density = math.Max(0.1, popf)
+	}
+}

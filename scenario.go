@@ -3,6 +3,7 @@ package main
 import (
 	"encoding/json"
 	"log"
+	"math"
 	"math/rand"
 	"os"
 	"strings"
@@ -29,11 +30,14 @@ type Destination struct {
 	RegionID int32   `json:"regionId,omitempty"`
 	ID       DestinationID
 
-	Name     string  `json:"name"`
-	Events   []event `json:"events"`
-	MeanTime float64 `json:"meanUseTime"`
-	VarTime  float64 `json:"useTimeVar"`
-	Closed   bool
+	Name       string  `json:"name"`
+	Events     []event `json:"events"`
+	MeanTime   float64 `json:"meanUseTime"`
+	VarTime    float64 `json:"useTimeVar"`
+	Closed     bool
+	population int64
+	volume     float64
+	density    float64
 }
 
 type Coord struct {
@@ -83,6 +87,7 @@ func LoadScenario(path string) State {
 			}
 			scenario.Destinations[i].Coords = append(scenario.Destinations[i].Coords, coord)
 		}
+
 		scenario.Destinations[i].ID = DestinationID{idCount}
 		idCount++
 	}
@@ -92,6 +97,9 @@ func LoadScenario(path string) State {
 
 	for i, d := range scenario.Destinations {
 		scenario.destMap[d.ID.ID] = &scenario.Destinations[i]
+		for _, c := range scenario.Destinations[i].Coords {
+			scenario.Destinations[i].volume += math.Pi * float64(c.R*c.R)
+		}
 	}
 
 	log.Println(scenario)
@@ -112,6 +120,15 @@ func (s *Scenario) GenerateRandomPersonality() []Likelihood {
 
 func (s *Scenario) GetDestination(target DestinationID) *Destination {
 	return s.destMap[target.ID]
+}
+
+func (s *Scenario) GetRegionDestination(region *Region) *Destination {
+	for i := range s.Destinations {
+		if s.Destinations[i].RegionID == region.ID {
+			return &s.Destinations[i]
+		}
+	}
+	return nil
 }
 
 func (d *Destination) GenerateRandomLikelihood() Likelihood {
@@ -162,6 +179,17 @@ func (d *Destination) Contains(x, y int) bool {
 		dxsq := (c.X - x) * (c.X - x)
 		dysq := (c.Y - y) * (c.Y - y)
 		if int(c.R*c.R) > dxsq+dysq {
+			return true
+		}
+	}
+	return false
+}
+
+func (d *Destination) ContainsR(x, y int, r float64) bool {
+	for _, c := range d.Coords {
+		dxsq := (c.X - x) * (c.X - x)
+		dysq := (c.Y - y) * (c.Y - y)
+		if int(c.R*r*c.R*r) > dxsq+dysq {
 			return true
 		}
 	}

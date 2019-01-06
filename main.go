@@ -79,6 +79,7 @@ func simulate(world *State, r *RenderState) {
 	var avg float64 = -1
 	for world.time.Before(world.scenario.End) {
 		t := time.Now()
+		world.CalcDensity()
 
 		// add more people until someone doesn't fit
 		for i := world.peopleAdded; i < world.scenario.TotalPeople; i++ {
@@ -112,7 +113,6 @@ func simulate(world *State, r *RenderState) {
 		world.simulationTimeChan <- world.time
 		world.currentSendersChan <- world.currentSenders
 		world.totalSendsChan <- GetTotalUpdates()
-
 		//fmt.Println("people: ", people)
 		steps++
 		world.TickTime()
@@ -154,7 +154,7 @@ func processMovementsForGroup(world *State, movements map[*Individual]utils.Opti
 
 		world.MoveIndividual(individual, theta, individual.StepSize)
 
-		UpdateRegions(&world.Regions, individual, world.time, world.BulkSend)
+		UpdateRegions(world, individual, world.time, world.BulkSend)
 
 	}
 }

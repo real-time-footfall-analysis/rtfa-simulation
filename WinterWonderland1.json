@@ -1,196 +1,174 @@
 {"map":"WinterWonderland.png", "regions":"WinterWonderland_Regions.json", "Lat": 51.501761, "Lng":-0.174522,
-  "start":"2018-11-23T07:00:00.000Z", "end":"2018-11-23T21:00:00.000Z",
-  "entrance":[{"x": 57, "y":44, "r": 0.3}, {"x": 293, "y":36, "r": 0.3}, {"x": 40, "y":223, "r": 0.3}, {"x": 389, "y":230, "r": 0.3}], "totalPeople": 5000, "totalGroups": 5000,
+  "start":"2018-11-23T07:00:00.000Z", "end":"2018-11-24T00:00:00.000Z",
+  "entrance":[{"x": 57, "y":44, "r": 0.1}, {"x": 293, "y":36, "r": 0.1}, {"x": 40, "y":223, "r": 0.1}, {"x": 389, "y":230, "r": 0.1}], "totalPeople": 2000, "totalGroups": 2000,
   "exit":{
     "coords":[{"x":263, "y": 236, "r":2}, {"x":349, "y": 234, "r":2}, {"x":260, "y": 35, "r":2}, {"x":45, "y": 52, "r":1}], "regionId": 0,
     "name": "exit gate", "events": [
       {"name": "General Exit", "start": "2018-11-23T08:00:00.000Z", "end": "2018-11-23T19:00:00.000Z", "popularity": 0.1},
       {"name": "Home Time", "start": "2018-11-23T16:30:00.000Z", "end": "2018-11-23T19:00:00.000Z", "popularity": 0.3},
-      {"name": "Closing Time", "start": "2018-11-23T18:30:00.000Z", "end": "2018-11-23T21:00:00.000Z", "popularity": 0.99}
+      {"name": "Closing Time", "start": "2018-11-23T23:00:00.000Z", "end": "2018-11-24T00:00:00.000Z", "popularity": 0.99}
     ]},
   "destinations":[
     {"regionId": 107, "meanUseTime":600, "useTimeVar":100,
       "name": "Ice Bar", "events": [
-        {"name": "General Food", "start": "2018-11-23T07:00:00.000Z", "end": "2018-11-23T18:00:00.000Z", "popularity": 0.2},
-        {"name": "Breakfast", "start": "2018-11-23T07:30:00.000Z", "end": "2018-11-23T09:00:00.000Z", "popularity": 0.3},
-        {"name": "Lunch", "start": "2018-11-23T12:30:00.000Z", "end": "2018-11-23T14:00:00.000Z", "popularity": 0.5},
-        {"name": "Dinner", "start": "2018-11-23T17:00:00.000Z", "end": "2018-11-23T19:00:00.000Z", "popularity": 0.3}
+        {"name": "General Drinks", "start": "2018-11-23T07:00:00.000Z", "end": "2018-11-23T18:00:00.000Z", "popularity": 0.2},
+        {"name": "Lunch Pint", "start": "2018-11-23T12:30:00.000Z", "end": "2018-11-23T14:00:00.000Z", "popularity": 0.5},
+        {"name": "Dinner Pint", "start": "2018-11-23T17:00:00.000Z", "end": "2018-11-23T19:00:00.000Z", "popularity": 0.3}
       ]
     },
-    {"regionId": 108, "meanUseTime":120, "useTimeVar":100,
+    {"regionId": 108, "meanUseTime":0, "useTimeVar":0,
       "name": "Comedy Club", "events": [
-        {"name": "General Use", "start": "2018-11-23T07:00:00.000Z", "end": "2018-11-23T18:30:00.000Z", "popularity": 0.2},
-        {"name": "Post Lunch", "start": "2018-11-23T13:00:00.000Z", "end": "2018-11-23T14:30:00.000Z", "popularity": 0.5},
-        {"name": "Post Dinner", "start": "2018-11-23T17:30:00.000Z", "end": "2018-11-23T19:30:00.000Z", "popularity": 0.3}
-      ]
+        {"name": "Comedian 1", "start": "2018-11-23T13:00:00.000Z", "end": "2018-11-23T14:30:00.000Z", "popularity": 0.2},
+        {"name": "Comedian 2", "start": "2018-11-23T15:00:00.000Z", "end": "2018-11-23T16:30:00.000Z", "popularity": 0.2},
+        {"name": "Comedian 3", "start": "2018-11-23T17:00:00.000Z", "end": "2018-11-23T17:30:00.000Z", "popularity": 0.25},
+        {"name": "Comedian 4", "start": "2018-11-23T18:00:00.000Z", "end": "2018-11-23T18:30:00.000Z", "popularity": 0.3},
+        {"name": "Comedian 5", "start": "2018-11-23T19:00:00.000Z", "end": "2018-11-23T20:30:00.000Z", "popularity": 0.3}
+    ]
     },
-    {"regionId": 109, "meanUseTime":0, "useTimeVar":0,
+    {"regionId": 109, "meanUseTime":600, "useTimeVar":60,
       "name": "Giant Wheel", "events": [
-        {"name": "welcome", "start": "2018-11-23T07:00:00.000Z", "end": "2018-11-23T08:00:00.000Z", "popularity": 0.4},
-        {"name": "morning event", "start": "2018-11-23T08:30:00.000Z", "end": "2018-11-23T10:30:00.000Z", "popularity": 0.2},
-        {"name": "Mid Day", "start": "2018-11-23T12:00:00.000Z", "end": "2018-11-23T16:30:00.000Z", "popularity": 0.5},
-        {"name": "Evening", "start": "2018-11-23T16:00:00.000Z", "end": "2018-11-23T18:30:00.000Z", "popularity": 0.3}
+        {"name": "General Rides", "start": "2018-11-23T08:00:00.000Z", "end": "2018-11-23T18:00:00.000Z", "popularity": 0.2},
+        {"name": "Evening", "start": "2018-11-23T16:00:00.000Z", "end": "2018-11-23T20:30:00.000Z", "popularity": 0.3}
       ]
     },
     {"regionId": 110, "meanUseTime":600, "useTimeVar":100,
       "name": "Ice Rink", "events": [
         {"name": "General Use", "start": "2018-11-23T07:00:00.000Z", "end": "2018-11-23T18:30:00.000Z", "popularity": 0.3},
-        {"name": "Late Day", "start": "2018-11-23T17:00:00.000Z", "end": "2018-11-23T18:30:00.000Z", "popularity": 0.5}
+        {"name": "Late Day", "start": "2018-11-23T17:00:00.000Z", "end": "2018-11-23T18:30:00.000Z", "popularity": 0.4}
       ]
     },
-    {"regionId": 111, "meanUseTime":60, "useTimeVar":60,
+    {"regionId": 111, "meanUseTime":500, "useTimeVar":60,
       "name": "Karaoke Hut", "events": [
       {"name": "General Use", "start": "2018-11-23T07:00:00.000Z", "end": "2018-11-23T18:30:00.000Z", "popularity": 0.1},
-      {"name": "Early Rush", "start": "2018-11-23T07:00:00.000Z", "end": "2018-11-23T08:00:00.000Z", "popularity": 0.6},
-      {"name": "Late Rush", "start": "2018-11-23T17:00:00.000Z", "end": "2018-11-23T18:00:00.000Z", "popularity": 0.6}
+      {"name": "Late Rush", "start": "2018-11-23T17:00:00.000Z", "end": "2018-11-23T19:00:00.000Z", "popularity": 0.3}
     ]
     },
     { "regionId": 112, "meanUseTime":600, "useTimeVar":200,
       "name": "Sleigh Ride", "events": [
-      {"name": "General Food", "start": "2018-11-23T07:00:00.000Z", "end": "2018-11-23T18:00:00.000Z", "popularity": 0.1},
-      {"name": "Breakfast", "start": "2018-11-23T07:30:00.000Z", "end": "2018-11-23T10:00:00.000Z", "popularity": 0.1},
-      {"name": "Lunch", "start": "2018-11-23T12:00:00.000Z", "end": "2018-11-23T14:00:00.000Z", "popularity": 0.1},
-      {"name": "Dinner", "start": "2018-11-23T17:00:00.000Z", "end": "2018-11-23T18:00:00.000Z", "popularity": 0.1}
+      {"name": "General Rides", "start": "2018-11-23T07:00:00.000Z", "end": "2018-11-23T18:00:00.000Z", "popularity": 0.2},
+      {"name": "Midday rush", "start": "2018-11-23T12:30:00.000Z", "end": "2018-11-23T16:00:00.000Z", "popularity": 0.3}
+
     ]
     },
-    { "regionId": 113, "meanUseTime":120, "useTimeVar":100,
+    { "regionId": 113, "meanUseTime":0, "useTimeVar":0,
       "name": "Magic Circus", "events": [
-      {"name": "General Use", "start": "2018-11-23T07:00:00.000Z", "end": "2018-11-23T18:30:00.000Z", "popularity": 0.2},
-      {"name": "Post Lunch", "start": "2018-11-23T13:00:00.000Z", "end": "2018-11-23T14:30:00.000Z", "popularity": 0.5},
-      {"name": "Post Dinner", "start": "2018-11-23T17:30:00.000Z", "end": "2018-11-23T19:30:00.000Z", "popularity": 0.3}
+      {"name": "Show 1", "start": "2018-11-23T12:00:00.000Z", "end": "2018-11-23T14:00:00.000Z", "popularity": 0.2},
+      {"name": "Show 2", "start": "2018-11-23T14:15:00.000Z", "end": "2018-11-23T16:00:00.000Z", "popularity": 0.2},
+      {"name": "Show 3", "start": "2018-11-23T16:15:00.000Z", "end": "2018-11-23T18:00:00.000Z", "popularity": 0.2},
+      {"name": "Show 4", "start": "2018-11-23T18:15:00.000Z", "end": "2018-11-23T21:00:00.000Z", "popularity": 0.3}
     ]
     },
-    { "regionId": 114, "meanUseTime":120, "useTimeVar":100,
+    { "regionId": 114, "meanUseTime":120, "useTimeVar":10,
       "name": "Street Food", "events": [
       {"name": "General Use", "start": "2018-11-23T07:00:00.000Z", "end": "2018-11-23T18:30:00.000Z", "popularity": 0.2},
-      {"name": "Lunch", "start": "2018-11-23T12:00:00.000Z", "end": "2018-11-23T13:00:00.000Z", "popularity": 0.5},
-      {"name": "Dinner", "start": "2018-11-23T18:00:00.000Z", "end": "2018-11-23T19:30:00.000Z", "popularity": 0.5}
+      {"name": "Lunch", "start": "2018-11-23T12:00:00.000Z", "end": "2018-11-23T13:00:00.000Z", "popularity": 0.25},
+      {"name": "Dinner", "start": "2018-11-23T18:00:00.000Z", "end": "2018-11-23T19:30:00.000Z", "popularity": 0.25}
     ]
     },
-    { "regionId": 115, "meanUseTime":120, "useTimeVar":100,
+    { "regionId": 115, "meanUseTime":220, "useTimeVar":10,
       "name": "Double Decker Carousel", "events": [
-      {"name": "General Use", "start": "2018-11-23T07:00:00.000Z", "end": "2018-11-23T18:30:00.000Z", "popularity": 0.2},
-      {"name": "Lunch", "start": "2018-11-23T12:00:00.000Z", "end": "2018-11-23T13:00:00.000Z", "popularity": 0.5},
-      {"name": "Dinner", "start": "2018-11-23T18:00:00.000Z", "end": "2018-11-23T19:30:00.000Z", "popularity": 0.5}
+      {"name": "General Rides", "start": "2018-11-23T08:00:00.000Z", "end": "2018-11-23T22:30:00.000Z", "popularity": 0.2},
+      {"name": "Afternoon", "start": "2018-11-23T14:00:00.000Z", "end": "2018-11-23T15:00:00.000Z", "popularity": 0.5},
+      {"name": "Evening", "start": "2018-11-23T20:00:00.000Z", "end": "2018-11-23T22:30:00.000Z", "popularity": 0.4}
     ]
     },
-    { "regionId": 116, "meanUseTime":120, "useTimeVar":100,
+    { "regionId": 116, "meanUseTime":500, "useTimeVar":10,
       "name": "North Star Flyer", "events": [
       {"name": "General Use", "start": "2018-11-23T07:00:00.000Z", "end": "2018-11-23T18:30:00.000Z", "popularity": 0.2},
-      {"name": "Lunch", "start": "2018-11-23T12:00:00.000Z", "end": "2018-11-23T13:00:00.000Z", "popularity": 0.5},
-      {"name": "Dinner", "start": "2018-11-23T18:00:00.000Z", "end": "2018-11-23T19:30:00.000Z", "popularity": 0.5}
+      {"name": "Afternoon", "start": "2018-11-23T20:00:00.000Z", "end": "2018-11-23T22:30:00.000Z", "popularity": 0.5}
     ]
     },
     { "regionId": 117, "meanUseTime":120, "useTimeVar":100,
       "name": "Toilets", "events": [
       {"name": "General Use", "start": "2018-11-23T07:00:00.000Z", "end": "2018-11-23T18:30:00.000Z", "popularity": 0.2},
-      {"name": "Lunch", "start": "2018-11-23T12:00:00.000Z", "end": "2018-11-23T13:00:00.000Z", "popularity": 0.5},
-      {"name": "Dinner", "start": "2018-11-23T18:00:00.000Z", "end": "2018-11-23T19:30:00.000Z", "popularity": 0.5}
+      {"name": "Lunch", "start": "2018-11-23T13:00:00.000Z", "end": "2018-11-23T13:30:00.000Z", "popularity": 0.5},
+      {"name": "Dinner", "start": "2018-11-23T19:00:00.000Z", "end": "2018-11-23T19:30:00.000Z", "popularity": 0.5}
     ]
     },
-    { "regionId": 118, "meanUseTime":120, "useTimeVar":100,
+    { "regionId": 118, "meanUseTime":700, "useTimeVar":50,
       "name": "Blizzard Rollercoaster", "events": [
-      {"name": "General Use", "start": "2018-11-23T07:00:00.000Z", "end": "2018-11-23T18:30:00.000Z", "popularity": 0.2},
-      {"name": "Lunch", "start": "2018-11-23T12:00:00.000Z", "end": "2018-11-23T13:00:00.000Z", "popularity": 0.5},
-      {"name": "Dinner", "start": "2018-11-23T18:00:00.000Z", "end": "2018-11-23T19:30:00.000Z", "popularity": 0.5}
+      {"name": "General Use", "start": "2018-11-23T07:00:00.000Z", "end": "2018-11-23T18:30:00.000Z", "popularity": 0.1}
     ]
     },
-    { "regionId": 119, "meanUseTime":120, "useTimeVar":100,
+    { "regionId": 119, "meanUseTime":3600, "useTimeVar":1000,
       "name": "Bavarian Hall", "events": [
-      {"name": "General Use", "start": "2018-11-23T07:00:00.000Z", "end": "2018-11-23T18:30:00.000Z", "popularity": 0.2},
-      {"name": "Lunch", "start": "2018-11-23T12:00:00.000Z", "end": "2018-11-23T13:00:00.000Z", "popularity": 0.5},
-      {"name": "Dinner", "start": "2018-11-23T18:00:00.000Z", "end": "2018-11-23T19:30:00.000Z", "popularity": 0.5}
+      {"name": "General Use", "start": "2018-11-23T07:00:00.000Z", "end": "2018-11-23T18:30:00.000Z", "popularity": 0.1},
+      {"name": "Evening", "start": "2018-11-23T19:00:00.000Z", "end": "2018-11-23T22:00:00.000Z", "popularity": 0.15}
     ]
     },
-    { "regionId": 120, "meanUseTime":120, "useTimeVar":100,
+    { "regionId": 120, "meanUseTime":400, "useTimeVar":100,
       "name": "Air Rollercoaster", "events": [
-      {"name": "General Use", "start": "2018-11-23T07:00:00.000Z", "end": "2018-11-23T18:30:00.000Z", "popularity": 0.2},
-      {"name": "Lunch", "start": "2018-11-23T12:00:00.000Z", "end": "2018-11-23T13:00:00.000Z", "popularity": 0.5},
-      {"name": "Dinner", "start": "2018-11-23T18:00:00.000Z", "end": "2018-11-23T19:30:00.000Z", "popularity": 0.5}
+      {"name": "General Use", "start": "2018-11-23T08:00:00.000Z", "end": "2018-11-23T20:30:00.000Z", "popularity": 0.2}
     ]
     },
-    { "regionId": 121, "meanUseTime":120, "useTimeVar":100,
+    { "regionId": 121, "meanUseTime":420, "useTimeVar":50,
       "name": "Christmas Tree Ride", "events": [
-      {"name": "General Use", "start": "2018-11-23T07:00:00.000Z", "end": "2018-11-23T18:30:00.000Z", "popularity": 0.2},
-      {"name": "Lunch", "start": "2018-11-23T12:00:00.000Z", "end": "2018-11-23T13:00:00.000Z", "popularity": 0.5},
-      {"name": "Dinner", "start": "2018-11-23T18:00:00.000Z", "end": "2018-11-23T19:30:00.000Z", "popularity": 0.5}
+      {"name": "General Use", "start": "2018-11-23T08:00:00.000Z", "end": "2018-11-23T21:30:00.000Z", "popularity": 0.2}
     ]
     },
-    { "regionId": 122, "meanUseTime":120, "useTimeVar":100,
+    { "regionId": 122, "meanUseTime":300, "useTimeVar":100,
       "name": "Angels Christmas Market", "events": [
       {"name": "General Use", "start": "2018-11-23T07:00:00.000Z", "end": "2018-11-23T18:30:00.000Z", "popularity": 0.2},
-      {"name": "Lunch", "start": "2018-11-23T12:00:00.000Z", "end": "2018-11-23T13:00:00.000Z", "popularity": 0.5},
-      {"name": "Dinner", "start": "2018-11-23T18:00:00.000Z", "end": "2018-11-23T19:30:00.000Z", "popularity": 0.5}
+      {"name": "Lunch", "start": "2018-11-23T12:00:00.000Z", "end": "2018-11-23T13:00:00.000Z", "popularity": 0.25}
     ]
     },
-    { "regionId": 123, "meanUseTime":120, "useTimeVar":100,
+    { "regionId": 123, "meanUseTime":220, "useTimeVar":100,
       "name": "Helter Skelter", "events": [
       {"name": "General Use", "start": "2018-11-23T07:00:00.000Z", "end": "2018-11-23T18:30:00.000Z", "popularity": 0.2},
-      {"name": "Lunch", "start": "2018-11-23T12:00:00.000Z", "end": "2018-11-23T13:00:00.000Z", "popularity": 0.5},
-      {"name": "Dinner", "start": "2018-11-23T18:00:00.000Z", "end": "2018-11-23T19:30:00.000Z", "popularity": 0.5}
+      {"name": "Midday Rush", "start": "2018-11-23T12:00:00.000Z", "end": "2018-11-23T14:00:00.000Z", "popularity": 0.25}
     ]
     },
-    { "regionId": 124, "meanUseTime":120, "useTimeVar":100,
+    { "regionId": 124, "meanUseTime":2000, "useTimeVar":1000,
       "name": "The Carousel Bar", "events": [
-      {"name": "General Use", "start": "2018-11-23T07:00:00.000Z", "end": "2018-11-23T18:30:00.000Z", "popularity": 0.2},
-      {"name": "Lunch", "start": "2018-11-23T12:00:00.000Z", "end": "2018-11-23T13:00:00.000Z", "popularity": 0.5},
-      {"name": "Dinner", "start": "2018-11-23T18:00:00.000Z", "end": "2018-11-23T19:30:00.000Z", "popularity": 0.5}
+      {"name": "General Use", "start": "2018-11-23T10:00:00.000Z", "end": "2018-11-23T23:30:00.000Z", "popularity": 0.2},
+      {"name": "Lunch", "start": "2018-11-23T13:00:00.000Z", "end": "2018-11-23T14:00:00.000Z", "popularity": 0.3},
+      {"name": "Dinner", "start": "2018-11-23T20:00:00.000Z", "end": "2018-11-23T23:30:00.000Z", "popularity": 0.25}
     ]
     },
-    {"regionId": 125, "meanUseTime":120, "useTimeVar":100,
+    {"regionId": 125, "meanUseTime":500, "useTimeVar":100,
       "name": "Tea Cups", "events": [
-      {"name": "General Use", "start": "2018-11-23T07:00:00.000Z", "end": "2018-11-23T18:30:00.000Z", "popularity": 0.2},
-      {"name": "Lunch", "start": "2018-11-23T12:00:00.000Z", "end": "2018-11-23T13:00:00.000Z", "popularity": 0.5},
-      {"name": "Dinner", "start": "2018-11-23T18:00:00.000Z", "end": "2018-11-23T19:30:00.000Z", "popularity": 0.5}
+      {"name": "General Rides", "start": "2018-11-23T07:00:00.000Z", "end": "2018-11-23T18:30:00.000Z", "popularity": 0.2},
+      {"name": "Mid Late Rush", "start": "2018-11-23T15:00:00.000Z", "end": "2018-11-23T18:00:00.000Z", "popularity": 0.3}
     ]
     },
-    {"regionId": 126, "meanUseTime":120, "useTimeVar":100,
+    {"regionId": 126, "meanUseTime":3600, "useTimeVar":100,
       "name": "Bratwurst Restaurant", "events": [
-      {"name": "General Use", "start": "2018-11-23T07:00:00.000Z", "end": "2018-11-23T18:30:00.000Z", "popularity": 0.2},
-      {"name": "Lunch", "start": "2018-11-23T12:00:00.000Z", "end": "2018-11-23T13:00:00.000Z", "popularity": 0.5},
-      {"name": "Dinner", "start": "2018-11-23T18:00:00.000Z", "end": "2018-11-23T19:30:00.000Z", "popularity": 0.5}
+      {"name": "General Use", "start": "2018-11-23T07:00:00.000Z", "end": "2018-11-23T18:30:00.000Z", "popularity": 0.05},
+      {"name": "Evening", "start": "2018-11-23T19:00:00.000Z", "end": "2018-11-23T22:00:00.000Z", "popularity": 0.1}
     ]
     },
-    {"regionId": 127, "meanUseTime":120, "useTimeVar":100,
+    {"regionId": 127, "meanUseTime":600, "useTimeVar":100,
       "name": "Dodgems", "events": [
       {"name": "General Use", "start": "2018-11-23T07:00:00.000Z", "end": "2018-11-23T18:30:00.000Z", "popularity": 0.2},
-      {"name": "Lunch", "start": "2018-11-23T12:00:00.000Z", "end": "2018-11-23T13:00:00.000Z", "popularity": 0.5},
-      {"name": "Dinner", "start": "2018-11-23T18:00:00.000Z", "end": "2018-11-23T19:30:00.000Z", "popularity": 0.5}
+      {"name": "Morning", "start": "2018-11-23T10:00:00.000Z", "end": "2018-11-23T12:00:00.000Z", "popularity": 0.35}
     ]
     },
-    {"regionId": 128, "meanUseTime":120, "useTimeVar":100,
+    {"regionId": 128, "meanUseTime":300, "useTimeVar":100,
       "name": "Santa's Grotto", "events": [
       {"name": "General Use", "start": "2018-11-23T07:00:00.000Z", "end": "2018-11-23T18:30:00.000Z", "popularity": 0.2},
-      {"name": "Lunch", "start": "2018-11-23T12:00:00.000Z", "end": "2018-11-23T13:00:00.000Z", "popularity": 0.5},
-      {"name": "Dinner", "start": "2018-11-23T18:00:00.000Z", "end": "2018-11-23T19:30:00.000Z", "popularity": 0.5}
+      {"name": "Afternoon", "start": "2018-11-23T13:00:00.000Z", "end": "2018-11-23T17:00:00.000Z", "popularity": 0.25}
     ]
     },
-    {"regionId": 129, "meanUseTime":120, "useTimeVar":100,
+    {"regionId": 129, "meanUseTime":600, "useTimeVar":100,
       "name": "Bavarian Village", "events": [
-      {"name": "General Use", "start": "2018-11-23T07:00:00.000Z", "end": "2018-11-23T18:30:00.000Z", "popularity": 0.2},
-      {"name": "Lunch", "start": "2018-11-23T12:00:00.000Z", "end": "2018-11-23T13:00:00.000Z", "popularity": 0.5},
-      {"name": "Dinner", "start": "2018-11-23T18:00:00.000Z", "end": "2018-11-23T19:30:00.000Z", "popularity": 0.5}
+      {"name": "General Use", "start": "2018-11-23T07:00:00.000Z", "end": "2018-11-23T18:30:00.000Z", "popularity": 0.2}
     ]
     },
-    {"regionId": 130, "meanUseTime":120, "useTimeVar":100,
+    {"regionId": 130, "meanUseTime":0, "useTimeVar":0,
       "name": "Circus Megadome", "events": [
-      {"name": "General Use", "start": "2018-11-23T07:00:00.000Z", "end": "2018-11-23T18:30:00.000Z", "popularity": 0.2},
-      {"name": "Lunch", "start": "2018-11-23T12:00:00.000Z", "end": "2018-11-23T13:00:00.000Z", "popularity": 0.5},
-      {"name": "Dinner", "start": "2018-11-23T18:00:00.000Z", "end": "2018-11-23T19:30:00.000Z", "popularity": 0.5}
+      {"name": "Midday Show", "start": "2018-11-23T13:00:00.000Z", "end": "2018-11-23T15:00:00.000Z", "popularity": 0.2},
+      {"name": "Evening Show", "start": "2018-11-23T20:00:00.000Z", "end": "2018-11-23T21:00:00.000Z", "popularity": 0.5}
     ]
     },
-    {"regionId": 131, "meanUseTime":120, "useTimeVar":100,
+    {"regionId": 131, "meanUseTime":2100, "useTimeVar":100,
       "name": "Haunted Mansion", "events": [
-      {"name": "General Use", "start": "2018-11-23T07:00:00.000Z", "end": "2018-11-23T18:30:00.000Z", "popularity": 0.2},
-      {"name": "Lunch", "start": "2018-11-23T12:00:00.000Z", "end": "2018-11-23T13:00:00.000Z", "popularity": 0.5},
-      {"name": "Dinner", "start": "2018-11-23T18:00:00.000Z", "end": "2018-11-23T19:30:00.000Z", "popularity": 0.5}
+      {"name": "General Use", "start": "2018-11-23T07:00:00.000Z", "end": "2018-11-23T18:30:00.000Z", "popularity": 0.2}
     ]
     },
-    {"regionId": 132, "meanUseTime":120, "useTimeVar":100,
+    {"regionId": 132, "meanUseTime":2700, "useTimeVar":100,
       "name": "Christmas Bar", "events": [
-      {"name": "General Use", "start": "2018-11-23T07:00:00.000Z", "end": "2018-11-23T18:30:00.000Z", "popularity": 0.2},
-      {"name": "Lunch", "start": "2018-11-23T12:00:00.000Z", "end": "2018-11-23T13:00:00.000Z", "popularity": 0.5},
-      {"name": "Dinner", "start": "2018-11-23T18:00:00.000Z", "end": "2018-11-23T19:30:00.000Z", "popularity": 0.5}
+      {"name": "General Use", "start": "2018-11-23T07:00:00.000Z", "end": "2018-11-23T18:30:00.000Z", "popularity": 0.1},
+      {"name": "Dinner Pint", "start": "2018-11-23T17:00:00.000Z", "end": "2018-11-23T19:00:00.000Z", "popularity": 0.12}
     ]
     }
   ]
