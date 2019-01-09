@@ -20,6 +20,7 @@ import (
 	"image/draw"
 	"log"
 	"os"
+	"strings"
 )
 
 type ControlPanel struct {
@@ -112,9 +113,9 @@ func (p *ControlPanel) NewButton(text string, icon []byte, toggle bool, onClick 
 		w.label.Text = fmt.Sprintf("%-30s", onClick())
 		w.label.Mark(node.MarkNeedsPaintBase)
 		if w.pressed || !toggle {
-			w.uniform.ThemeColor = theme.StaticColor(colornames.Forestgreen)
+			w.uniform.ThemeColor = theme.StaticColor(colornames.Lightgreen)
 		} else {
-			w.uniform.ThemeColor = theme.StaticColor(colornames.Lightcoral)
+			w.uniform.ThemeColor = theme.StaticColor(colornames.Lightsalmon)
 		}
 		w.uniform.Mark(node.MarkNeedsPaintBase)
 		p.w.Send(panelUpdate{})
@@ -130,7 +131,7 @@ func (p *ControlPanel) NewButton(text string, icon []byte, toggle bool, onClick 
 	flow.Insert(widget.NewSizer(unit.Ems(0.5), unit.Value{}, nil), nil)
 	flow.Insert(NewIcon(icon), nil)
 
-	w.uniform = widget.NewUniform(theme.StaticColor(colornames.Lightcoral), flow)
+	w.uniform = widget.NewUniform(theme.StaticColor(colornames.Lightsalmon), flow)
 	padding := widget.NewPadder(widget.AxisBoth, unit.Ems(0.5), w.uniform)
 	w.Insert(padding, nil)
 	return w
@@ -180,6 +181,9 @@ func (p *ControlPanel) start(r *RenderState) {
 
 	for i := range p.world.scenario.Destinations {
 		dest := &p.world.scenario.Destinations[i]
+		if !strings.Contains(dest.Name, "Hall") {
+			continue
+		}
 		button := p.NewButton(fmt.Sprintf("Close %s", dest.Name), icons.NavigationClose, true, func() string {
 			if dest.isClosed() {
 				dest.Open()
