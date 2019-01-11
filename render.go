@@ -52,7 +52,7 @@ func SetupRender(s screen.Screen, original image.Image, regions *[]Region, state
 	r := RenderState{s: s}
 	r.world = state
 
-	r.backgroundScale = 1
+	r.backgroundScale = 4
 	window, err := s.NewWindow(nil)
 	if err != nil {
 		log.Fatal(err)
@@ -206,12 +206,12 @@ func (r *RenderState) Step() bool {
 					x, y := p.Loc.GetLatestXY()
 					if r.world.highlightActive {
 						if p.UpdateSender {
-							drawPersonInBuffer(r, x, y, colornames.Red, 2)
+							drawPersonInBuffer(r, x, y, colornames.Red, 1)
 						} else {
-							drawPersonInBuffer(r, x, y, colornames.Gray, 1)
+							drawPersonInBuffer(r, x, y, colornames.Gray, 0.5)
 						}
 					} else {
-						drawPersonInBuffer(r, x, y, p.Colour, 1)
+						drawPersonInBuffer(r, x, y, p.Colour, 0.5)
 					}
 				}
 			}

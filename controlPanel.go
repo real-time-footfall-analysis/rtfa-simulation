@@ -112,9 +112,9 @@ func (p *ControlPanel) NewButton(text string, icon []byte, toggle bool, onClick 
 		w.label.Text = fmt.Sprintf("%-30s", onClick())
 		w.label.Mark(node.MarkNeedsPaintBase)
 		if w.pressed || !toggle {
-			w.uniform.ThemeColor = theme.StaticColor(colornames.Forestgreen)
+			w.uniform.ThemeColor = theme.StaticColor(colornames.Lightgreen)
 		} else {
-			w.uniform.ThemeColor = theme.StaticColor(colornames.Lightcoral)
+			w.uniform.ThemeColor = theme.StaticColor(colornames.Lightsalmon)
 		}
 		w.uniform.Mark(node.MarkNeedsPaintBase)
 		p.w.Send(panelUpdate{})
@@ -130,7 +130,7 @@ func (p *ControlPanel) NewButton(text string, icon []byte, toggle bool, onClick 
 	flow.Insert(widget.NewSizer(unit.Ems(0.5), unit.Value{}, nil), nil)
 	flow.Insert(NewIcon(icon), nil)
 
-	w.uniform = widget.NewUniform(theme.StaticColor(colornames.Lightcoral), flow)
+	w.uniform = widget.NewUniform(theme.StaticColor(colornames.Lightsalmon), flow)
 	padding := widget.NewPadder(widget.AxisBoth, unit.Ems(0.5), w.uniform)
 	w.Insert(padding, nil)
 	return w
@@ -170,13 +170,13 @@ func (p *ControlPanel) start(r *RenderState) {
 	controls.Insert(p.NewExitButton(), nil)
 	controls.Insert(p.NewSaveFlowFieldsButton(), nil)
 	controls.Insert(p.NewLoadFlowFieldsButton(), nil)
+	controls.Insert(p.NewCloseAllButton(), nil)
 
 	tickers.Insert(p.NewTicker("Total People:", func() string { return fmt.Sprintf("%d", <-p.world.peopleCurrentChan) }), nil)
 	tickers.Insert(p.NewTicker("Total People Added:", func() string { return fmt.Sprintf("%d", <-p.world.peopleAddedChan) }), nil)
 	tickers.Insert(p.NewTicker("Simulation Time:", func() string { return (<-p.world.simulationTimeChan).String() }), nil)
 	tickers.Insert(p.NewTicker("Current Active People:", func() string { return fmt.Sprintf("%d", <-p.world.currentSendersChan) }), nil)
 	tickers.Insert(p.NewNetworkTickers(), nil)
-	//tickers.Insert(p.NewTicker("Total updates:", func() string { return fmt.Sprintf("%d", <-p.world.totalSendsChan) }), nil)
 
 	for i := range p.world.scenario.Destinations {
 		dest := &p.world.scenario.Destinations[i]
@@ -320,6 +320,31 @@ func (p *ControlPanel) NewExitButton() *Button {
 
 		return fmt.Sprintf("Exit - click %d time(s)", clicks)
 	})
+}
+
+func (p *ControlPanel) NewCloseAllButton() *Button {
+	open := true
+	button := p.NewButton("Close all", icons.NavigationClose, true, func() string {
+
+		for i := 0; i < len(p.world.scenario.Destinations); i++ {
+			dest := &p.world.scenario.Destinations[i]
+			if dest.ID == p.world.scenario.Exit.ID {
+				continue
+			}
+			if open {
+				dest.Close()
+			} else {
+				dest.Open()
+			}
+		}
+		if open {
+			return "Close all"
+		} else {
+			return "Open all"
+		}
+
+	})
+	return button
 }
 
 func (p *ControlPanel) NewNetworkTickers() node.Node {

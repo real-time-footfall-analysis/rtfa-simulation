@@ -46,6 +46,42 @@ func NewPoint(x, y float64) Point {
 	return Point{ax: x, ay: y, bx: x, by: y, last: true}
 }
 
+type Value struct {
+	ax   float64
+	bx   float64
+	last bool
+}
+
+func (p Value) Get() float64 {
+	if tick {
+		return p.ax
+	} else {
+		return p.bx
+	}
+}
+
+func (p Value) GetLatest() float64 {
+	if p.last {
+		return p.ax
+	} else {
+		return p.bx
+	}
+}
+
+func (p *Value) Set(x float64) {
+	if tick {
+		p.bx = x
+		p.last = false
+	} else {
+		p.ax = x
+		p.last = true
+	}
+}
+
+func NewValue(x float64) Value {
+	return Value{ax: x, bx: x, last: true}
+}
+
 func FlipTick() {
 	tick = !tick
 	step++

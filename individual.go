@@ -102,6 +102,8 @@ func (a *Individual) requestedDestination(w *State) DestinationID {
 		dest := w.scenario.GetDestination(likelihood.Destination)
 		if !dest.isClosed() {
 			prob := likelihood.ProbabilityAtTick(w.time)
+
+			prob /= dest.density
 			sum += prob
 			probs = append(probs, ProbabilityPair{
 				prob: prob,
@@ -132,13 +134,10 @@ func (a *Individual) requestedDestination(w *State) DestinationID {
 func (i *Individual) DirectionForDestination(dest DestinationID, w *State) utils.OptionalFloat64 {
 
 	x, y := i.Loc.GetXY()
-	if i.target.Contains(int(x), int(y)) {
+	if i.target.ContainsR(int(x), int(y), 0.7) {
 		// inside the area
-		if rand.Float64() < 0.4 {
-			return utils.OptionalFloat64WithValue((rand.Float64() - 0.5) * 2 * math.Pi)
-		}
+		return utils.OptionalFloat64WithValue((rand.Float64() - 0.5) * 2 * math.Pi)
 	}
-
 	tile := w.GetTileHighRes(i.Loc.GetXY())
 	if tile == nil {
 		return utils.OptionalFloat64WithEmptyValue()

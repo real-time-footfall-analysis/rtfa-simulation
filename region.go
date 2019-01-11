@@ -8,6 +8,7 @@ import (
 	"math"
 	"net/http"
 	"os"
+	"sync/atomic"
 	"time"
 )
 
@@ -99,12 +100,9 @@ func latLngToCoords(lat, lng, latOrigin, lngOrigin float64) (float64, float64) {
 	return x, y
 }
 
-func UpdateRegions(regions *[]Region, individual *Individual, time time.Time, bulk bool) {
-	if !individual.UpdateSender {
-		return
-	}
+func UpdateRegions(world *State, individual *Individual, time time.Time, bulk bool) {
 	x, y := individual.Loc.GetLatestXY()
-	for _, r := range *regions {
+	for _, r := range world.Regions {
 		dx := x - r.X
 		dy := y - r.Y
 		distanceSquared := math.Pow(dx, 2) + math.Pow(dy, 2)
@@ -113,30 +111,42 @@ func UpdateRegions(regions *[]Region, individual *Individual, time time.Time, bu
 			//_, knownInside := individual.RegionIds[r.ID]
 			if !individual.RegionIds[r.ID] {
 				individual.RegionIds[r.ID] = true
-				// we must send update to backend
-				u := update{EventID: r.EventID, RegionID: r.ID, UUID: individual.UUID, Entering: true, OccurredAt: time.Unix()}
-				networkStats.totalUpdates++
-				networkStats.queuedUpdates <- 1
-				if bulk {
-					*bulkUpdate = append(*bulkUpdate, u)
-				} else {
-					individual.UpdateChan.updates <- u
+				dest := world.scenario.GetRegionDestination(&r)
+				if dest != nil {
+					atomic.AddInt64(&dest.population, 1)
 				}
-
+				if individual.UpdateSender {
+					// we must send update to backend
+					u := update{EventID: r.EventID, RegionID: r.ID, UUID: individual.UUID, Entering: true, OccurredAt: time.Unix()}
+					networkStats.totalUpdates++
+					networkStats.queuedUpdates <- 1
+					if bulk {
+						*bulkUpdate = append(*bulkUpdate, u)
+					} else {
+						individual.UpdateChan.updates <- u
+					}
+				}
 			}
 		} else {
 			// this individual is not in this region
 			//_, knownInside := individual.RegionIds[r.ID]
 			if individual.RegionIds[r.ID] {
 				individual.RegionIds[r.ID] = false
-				// we must send update to backend to say this individual is no longer in the region.
-				u := update{EventID: r.EventID, RegionID: r.ID, UUID: individual.UUID, Entering: false, OccurredAt: time.Unix()}
-				networkStats.totalUpdates++
-				networkStats.queuedUpdates <- 1
-				if bulk {
-					*bulkUpdate = append(*bulkUpdate, u)
-				} else {
-					individual.UpdateChan.updates <- u
+				dest := world.scenario.GetRegionDestination(&r)
+				if dest != nil {
+					atomic.AddInt64(&dest.population, -1)
+				}
+				if individual.UpdateSender {
+
+					// we must send update to backend to say this individual is no longer in the region.
+					u := update{EventID: r.EventID, RegionID: r.ID, UUID: individual.UUID, Entering: false, OccurredAt: time.Unix()}
+					networkStats.totalUpdates++
+					networkStats.queuedUpdates <- 1
+					if bulk {
+						*bulkUpdate = append(*bulkUpdate, u)
+					} else {
+						individual.UpdateChan.updates <- u
+					}
 				}
 			}
 		}
@@ -197,13 +207,16 @@ func sendUpdate(u *update) {
 		log.Fatal("Cannot marshal update: ", *u)
 	}
 	req, err := http.NewRequest("POST", url, bytes.NewBuffer(jsonStr))
+	if err != nil {
+		log.Print("Cannot endcode update to json", err)
+	}
 	//req.Header.Set("X-Custom-Header", "myvalue")
 	req.Header.Set("Content-Type", "application/json")
 
 	client := &http.Client{}
 	resp, err := client.Do(req)
 	if err != nil {
-		log.Print("Cannot connect to backend")
+		log.Print("Cannot connect to backend", err)
 	} else {
 		if resp.StatusCode != http.StatusOK {
 			log.Println("Error sending update: ", resp.Status)
