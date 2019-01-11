@@ -20,7 +20,6 @@ import (
 	"image/draw"
 	"log"
 	"os"
-	"strings"
 )
 
 type ControlPanel struct {
@@ -178,13 +177,9 @@ func (p *ControlPanel) start(r *RenderState) {
 	tickers.Insert(p.NewTicker("Simulation Time:", func() string { return (<-p.world.simulationTimeChan).String() }), nil)
 	tickers.Insert(p.NewTicker("Current Active People:", func() string { return fmt.Sprintf("%d", <-p.world.currentSendersChan) }), nil)
 	tickers.Insert(p.NewNetworkTickers(), nil)
-	//tickers.Insert(p.NewTicker("Total updates:", func() string { return fmt.Sprintf("%d", <-p.world.totalSendsChan) }), nil)
 
 	for i := range p.world.scenario.Destinations {
 		dest := &p.world.scenario.Destinations[i]
-		if !strings.Contains(dest.Name, "Hall") {
-			continue
-		}
 		button := p.NewButton(fmt.Sprintf("Close %s", dest.Name), icons.NavigationClose, true, func() string {
 			if dest.isClosed() {
 				dest.Open()
