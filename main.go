@@ -22,7 +22,7 @@ func main() {
 	w.MakeChannes()
 	w.BulkSend = false
 	w.SendUpdates = false
-	w.maxSenders = 150
+	w.maxSenders = 300
 	log.Println("loaded scenario")
 
 	/*fmt.Println("pressed size:", w.GetWidth(), w.GetHeight())
